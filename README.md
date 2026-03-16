@@ -60,12 +60,8 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 
 
-<!-- 
-
-
-
 Admin:
-Email: admin@example.com – Pass:    
+Email: admin@example.com – Pass:    Admin@123
 URL sau login: /admin/dashboard
 
 
@@ -77,4 +73,3 @@ URL: /teacher/enrollments
 Student:
 Email: student@example.com – Pass: Student@123
 URL: /student/profile
- -->

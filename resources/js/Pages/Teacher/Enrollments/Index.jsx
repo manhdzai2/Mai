@@ -1,106 +1,80 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
-import Card from '@/Components/UI/Card';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
-function Index({ enrollments, students, subjects }) {
-  const { data, setData, post, processing, reset } = useForm({ student_id:'', subject_id:'', term:'' });
-  const submit = (e) => { e.preventDefault(); post(route('teacher.enrollments.store'), { onSuccess: () => reset() }); };
-  const [saving, setSaving] = useState(false);
+export default function Index({ courses }) {
+    return (
+        <AppLayout>
+            <Head title="Học phần giảng dạy" />
 
-  async function saveScore(enrollmentId, field, value) {
-    setSaving(true);
-    try {
-      const body = {
-        enrollment_id: enrollmentId,
-        attendance_score: field === 'attendance' ? Number(value) : undefined,
-        midterm_score:    field === 'midterm'    ? Number(value) : undefined,
-        final_score:      field === 'final'      ? Number(value) : undefined,
-      };
-      Object.keys(body).forEach(k => body[k] === undefined && delete body[k]);
-      if (!('attendance_score' in body || 'midterm_score' in body || 'final_score' in body)) return;
+            <div className="max-w-7xl mx-auto py-6">
+                {/* Header của trang */}
+                <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            Học phần đang giảng dạy
+                        </h1>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            Danh sách các môn học và lớp học được phân công trong học kỳ.
+                        </p>
+                    </div>
+                </div>
 
-      const res = await fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({
-          enrollment_id: enrollmentId,
-          attendance_score: body.attendance_score ?? 0,
-          midterm_score: body.midterm_score ?? 0,
-          final_score: body.final_score ?? 0,
-        }),
-      });
-      if (res.ok) router.reload({ only: ['enrollments'] });
-    } finally { setSaving(false); }
-  }
-
-  return (
-    <>
-      <Head title="Học phần" />
-      <div className="mx-auto max-w-7xl space-y-6">
-        <h1 className="text-2xl font-semibold">Học phần giảng dạy</h1>
-
-        <Card title="Thêm đăng ký học phần">
-          <form onSubmit={submit} className="grid md:grid-cols-4 gap-3 items-end">
-            <Select label="Sinh viên" value={data.student_id} onChange={v => setData('student_id', v)}
-              options={students.map(s => ({ value: s.id, label: `${s.student_code} - ${s.user.name}` }))} />
-            <Select label="Môn học" value={data.subject_id} onChange={v => setData('subject_id', v)}
-              options={subjects.map(s => ({ value: s.id, label: s.name }))} />
-            <Input label="Học kỳ (vd: 2025-2026 HK1)" value={data.term} onChange={e => setData('term', e.target.value)} />
-            <button disabled={processing} className="h-10 bg-indigo-600 text-white rounded px-4 hover:bg-indigo-700">Thêm</button>
-          </form>
-        </Card>
-
-        <Card title="Danh sách học phần" subtitle="Nhập điểm trực tiếp (0 - 10)">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr><Th>Mã SV</Th><Th>Sinh viên</Th><Th>Môn</Th><Th>Học kỳ</Th><Th>Chuyên cần</Th><Th>Giữa kỳ</Th><Th>Cuối kỳ</Th><Th>Tổng</Th><Th>Xếp loại</Th></tr>
-              </thead>
-              <tbody>
-                {enrollments.data.map(en => (
-                  <tr key={en.id} className="border-b hover:bg-gray-50/60">
-                    <Td>{en.student.student_code}</Td>
-                    <Td>{en.student.user.name}</Td>
-                    <Td>{en.subject.name}</Td>
-                    <Td>{en.term || '-'}</Td>
-                    <Td><NumInput defaultValue={en.score?.attendance_score ?? ''} onBlur={(v) => saveScore(en.id, 'attendance', v)} /></Td>
-                    <Td><NumInput defaultValue={en.score?.midterm_score ?? ''}    onBlur={(v) => saveScore(en.id, 'midterm', v)} /></Td>
-                    <Td><NumInput defaultValue={en.score?.final_score ?? ''}      onBlur={(v) => saveScore(en.id, 'final', v)} /></Td>
-                    <Td className="font-semibold">{en.score?.total_score ?? '-'}</Td>
-                    <Td><Badge grade={en.score?.grade} /></Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {saving && <div className="text-xs text-gray-500 mt-2">Đang lưu...</div>}
-          <div className="mt-3 text-xs text-gray-400">* Rời ô input để lưu. Observer tự tính tổng & xếp loại.</div>
-        </Card>
-      </div>
-    </>
-  );
+                {/* Kiểm tra nếu không có khóa học nào */}
+                {!courses || courses.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center flex flex-col items-center">
+                        <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Chưa có lớp học nào</h3>
+                        <p className="mt-1 text-gray-500 dark:text-gray-400">Hiện tại bạn chưa được phân công giảng dạy môn học nào.</p>
+                    </div>
+                ) : (
+                    /* Hiển thị danh sách Grid Card */
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.map((course, index) => (
+                            <div 
+                                key={index} 
+                                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col"
+                            >
+                                <div className="p-5 flex-1">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-md">
+                                            Kỳ {course.semester}
+                                        </div>
+                                        <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            {course.credit} Tín chỉ
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                                        {course.subject_name}
+                                    </h3>
+                                    
+                                    <div className="mt-4 flex items-center text-gray-600 dark:text-gray-400">
+                                        <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span className="text-sm font-medium">
+                                            {course.total_students} Sinh viên
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gray-50 dark:bg-gray-900/50 px-5 py-3 border-t border-gray-100 dark:border-gray-800">
+                                    {/* Nút xem chi tiết chuyển sang file Show.jsx */}
+                                    <Link
+                                        href={route('teacher.enrollments.show', { subject_id: course.subject_id, semester: course.semester })}
+                                        className="block w-full text-center text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors py-1"
+                                    >
+                                        Xem danh sách lớp & Nhập điểm &rarr;
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </AppLayout>
+    );
 }
-function Th({ children }) { return <th className="text-left font-medium px-4 py-2">{children}</th>; }
-function Td({ children }) { return <td className="px-4 py-2">{children}</td>; }
-function Input({ label, ...props }) { return <label className="text-sm grid gap-1"><span className="text-gray-600">{label}</span><input {...props} className="h-10 border rounded px-3" /></label>; }
-function Select({ label, value, onChange, options }) {
-  return <label className="text-sm grid gap-1">
-    <span className="text-gray-600">{label}</span>
-    <select value={value} onChange={e => onChange(e.target.value)} className="h-10 border rounded px-3">
-      <option value="">-- Chọn --</option>
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  </label>;
-}
-function NumInput({ defaultValue, onBlur }) {
-  const [val, setVal] = useState(defaultValue);
-  return <input type="number" min="0" max="10" step="0.1" value={val} onChange={e => setVal(e.target.value)} onBlur={() => onBlur(Number(val))} className="h-9 w-24 border rounded px-2" />;
-}
-function Badge({ grade }) {
-  if (!grade) return <span className="text-gray-400">-</span>;
-  const map = { 'Giỏi':'bg-emerald-50 text-emerald-700 border-emerald-200', 'Khá':'bg-sky-50 text-sky-700 border-sky-200', 'Trung bình':'bg-amber-50 text-amber-700 border-amber-200', 'Yếu':'bg-rose-50 text-rose-700 border-rose-200' };
-  return <span className={`text-xs px-2 py-1 rounded border ${map[grade] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{grade}</span>;
-}
-Index.layout = page => <AppLayout children={page} />;
-export default Index;

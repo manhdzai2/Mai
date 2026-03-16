@@ -3,59 +3,88 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Enrollment;
-use App\Models\Student;
 use App\Models\Subject;
-use App\Http\Requests\StoreEnrollmentRequest;
+use App\Models\Score;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class EnrollmentController extends Controller
 {
-    public function index(): Response
+    public function index()
     {
-        $teacherId = Auth::user()->teacher->id ?? null;
+        $user = Auth::user();
 
-        $enrollments = Enrollment::query()
-            ->when($teacherId, fn($q) => $q->where('teacher_id', $teacherId))
-            ->with(['student.user', 'subject', 'score'])
-            ->latest('id')
-            ->paginate(15)
-            ->withQueryString();
+        if (!$user || $user->role_id !== 2 || !$user->teacher) {
+            abort(403, 'Truy cập bị từ chối. Không tìm thấy hồ sơ giảng viên.');
+        }
+
+        $teacherId = $user->teacher->id;
+
+        // CHỈ gom nhóm theo subject_id, KHÔNG dính dáng đến semester nữa
+        $courses = Enrollment::with('subject')
+            ->where('teacher_id', $teacherId)
+            ->selectRaw('subject_id, COUNT(student_id) as total_students')
+            ->groupBy('subject_id')
+            ->get()
+            ->map(function ($enrollment) {
+                return [
+                    'subject_id'     => $enrollment->subject_id,
+                    'subject_name'   => $enrollment->subject ? $enrollment->subject->name : 'Môn học không xác định',
+                    'credit'         => $enrollment->subject ? $enrollment->subject->credit : 0,
+                    // Giả lập kỳ 1 để Front-end React không bị lỗi hiển thị
+                    'semester'       => 1, 
+                    'total_students' => $enrollment->total_students,
+                ];
+            });
 
         return Inertia::render('Teacher/Enrollments/Index', [
-            'enrollments' => $enrollments,
-            'students'    => Student::with('user')->select('id', 'user_id', 'student_code')->get(),
-            'subjects'    => Subject::select('id', 'name')->get(),
+            'courses' => $courses
         ]);
     }
 
-    public function store(StoreEnrollmentRequest $request): RedirectResponse
+    public function show($subject_id, $semester = 1)
     {
-        $data = $request->validated();
-        if (!isset($data['teacher_id'])) {
-            $data['teacher_id'] = Auth::user()->teacher->id ?? null;
-        }
-        Enrollment::create($data);
+        $teacherId = Auth::user()->teacher->id;
+        $subject = Subject::findOrFail($subject_id);
 
-        return back()->with('success', 'Đã tạo đăng ký học phần.');
+        // Chỉ tìm theo teacher_id và subject_id
+        $enrollments = Enrollment::with(['student.user', 'score'])
+            ->where('teacher_id', $teacherId)
+            ->where('subject_id', $subject_id)
+            ->get();
+
+        return Inertia::render('Teacher/Enrollments/Show', [
+            'subject' => $subject,
+            'semester' => $semester, // Trả về giao diện số 1 giả lập ở trên
+            'enrollments' => $enrollments
+        ]);
     }
 
-    public function destroy(Enrollment $enrollment): RedirectResponse
+    public function updateScore(Request $request)
     {
-        $this->authorizeTeacher($enrollment->teacher_id);
-        $enrollment->delete();
+        $request->validate([
+            'enrollment_id' => 'required|exists:enrollments,id',
+            'attendance_score' => 'nullable|numeric|min:0|max:10',
+            'midterm_score' => 'nullable|numeric|min:0|max:10',
+            'final_score' => 'nullable|numeric|min:0|max:10',
+        ]);
 
-        return back()->with('success', 'Đã xóa đăng ký.');
-    }
+        $enrollment = Enrollment::findOrFail($request->enrollment_id);
 
-    private function authorizeTeacher(?int $teacherId): void
-    {
-        $current = auth()->user()->teacher->id ?? null;
-        if (!$current || $current !== $teacherId) {
-            abort(403, 'Bạn không có quyền với học phần này.');
+        if ($enrollment->teacher_id !== Auth::user()->teacher->id) {
+            abort(403, 'Bạn không có quyền chấm điểm lớp này.');
         }
+
+        $score = Score::firstOrNew(['enrollment_id' => $enrollment->id]);
+
+        if ($request->has('attendance_score')) $score->attendance_score = $request->attendance_score;
+        if ($request->has('midterm_score')) $score->midterm_score = $request->midterm_score;
+        if ($request->has('final_score')) $score->final_score = $request->final_score;
+
+        $score->save(); 
+
+        return back();
     }
 }

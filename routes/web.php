@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\ClassController;
 
+// Khai báo Controller của Teacher
+use App\Http\Controllers\Teacher\EnrollmentController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -34,22 +37,27 @@ Route::middleware('auth')->group(function () {
 });
 
 // 4. NHÓM ROUTE DÀNH RIÊNG CHO ADMIN
-// Đã fix lỗi 404 và lỗi PUT bằng cách dùng Resource chuẩn
 Route::middleware(['auth', 'ensure.admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        
-        // Dashboard Admin
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        // CRUD Môn học (Gồm index, create, store, edit, update, destroy)
         Route::resource('subjects', SubjectController::class);
-
-        // CRUD Lớp học (Gồm index, create, store, edit, update, destroy)
-        // Lưu ý: Không thêm Route::put riêng lẻ ở đây để tránh xung đột
         Route::resource('classes', ClassController::class);
     });
 
 // 5. CÁC ROUTE AUTH (Breeze)
 require __DIR__.'/auth.php';
+
+// 6. NHÓM ROUTE DÀNH CHO TEACHER
+Route::middleware(['auth'])->prefix('teacher')->name('teacher.')->group(function () {
+    
+    // Trang danh sách học phần đang dạy (Hiển thị dạng Grid)
+    Route::get('/enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');
+    
+    // Trang chi tiết lớp học (Xem danh sách SV & Nhập điểm)
+    Route::get('/enrollments/{subject_id}/{semester}', [EnrollmentController::class, 'show'])->name('enrollments.show');
+    
+    // Route xử lý lưu điểm tự động (Khi giảng viên nhập điểm)
+    Route::post('/scores/update', [EnrollmentController::class, 'updateScore'])->name('scores.update');
+});
