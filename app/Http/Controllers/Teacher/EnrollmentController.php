@@ -62,29 +62,29 @@ class EnrollmentController extends Controller
         ]);
     }
 
+    // Thêm hàm updateScore này
     public function updateScore(Request $request)
     {
-        $request->validate([
+        // 1. Kiểm tra dữ liệu gửi lên phải hợp lệ (từ 0 đến 10)
+        $validated = $request->validate([
             'enrollment_id' => 'required|exists:enrollments,id',
             'attendance_score' => 'nullable|numeric|min:0|max:10',
             'midterm_score' => 'nullable|numeric|min:0|max:10',
             'final_score' => 'nullable|numeric|min:0|max:10',
         ]);
 
-        $enrollment = Enrollment::findOrFail($request->enrollment_id);
+        // 2. Lưu vào Database (Nếu có rồi thì update, chưa có thì tạo mới)
+        Score::updateOrCreate(
+            ['enrollment_id' => $validated['enrollment_id']],
+            [
+                'attendance_score' => $validated['attendance_score'],
+                'midterm_score' => $validated['midterm_score'],
+                'final_score' => $validated['final_score'],
+            ]
+        );
 
-        if ($enrollment->teacher_id !== Auth::user()->teacher->id) {
-            abort(403, 'Bạn không có quyền chấm điểm lớp này.');
-        }
-
-        $score = Score::firstOrNew(['enrollment_id' => $enrollment->id]);
-
-        if ($request->has('attendance_score')) $score->attendance_score = $request->attendance_score;
-        if ($request->has('midterm_score')) $score->midterm_score = $request->midterm_score;
-        if ($request->has('final_score')) $score->final_score = $request->final_score;
-
-        $score->save(); 
-
-        return back();
+        // 3. Trả về thông báo thành công cho React (Toast sẽ hiện lên)
+        return back()->with('success', 'Đã lưu điểm thành công!');
     }
+    
 }

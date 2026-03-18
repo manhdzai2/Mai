@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             TestUserSeeder::class,
+            DemoDataSeeder::class, // Thêm dòng này vào
         ]);
     }
-    
 }
