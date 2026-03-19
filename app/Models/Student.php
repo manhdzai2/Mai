@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Student extends Model
 {
-    protected $fillable = ['user_id', 'student_code', 'class_id', 'enrolled_at'];
+    protected $fillable = ['user_id', 'student_code', 'class_id', 'enrolled_at', 'dob', 'gender', 'phone', 'address'];
 
     public function user(): BelongsTo
     {

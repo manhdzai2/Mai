@@ -33,20 +33,40 @@ class ClassController extends Controller
 
     public function show($id)
     {
-        // 1. Lấy thông tin lớp học
         $class = \App\Models\SchoolClass::findOrFail($id);
 
-        // 2. Lấy danh sách sinh viên của lớp này (Nối bảng students với users để lấy Tên và Email)
+        // Danh sách sinh viên
         $students = \App\Models\Student::where('class_id', $id)
             ->join('users', 'students.user_id', '=', 'users.id')
             ->select('students.id', 'students.student_code', 'users.name', 'users.email')
             ->orderBy('users.name', 'asc')
             ->get();
 
-        // 3. Truyền dữ liệu sang React
+        // Danh sách học phần mà sinh viên lớp này đăng ký (unique)
+        $studentIds = \App\Models\Student::where('class_id', $id)->pluck('id');
+        $subjects = \App\Models\Enrollment::whereIn('student_id', $studentIds)
+            ->with('subject')
+            ->get()
+            ->pluck('subject')
+            ->unique('id')
+            ->map(function ($sub) use ($studentIds) {
+                $enrolledCount = \App\Models\Enrollment::where('subject_id', $sub->id)
+                    ->whereIn('student_id', $studentIds)
+                    ->count();
+                return [
+                    'id' => $sub->id,
+                    'name' => $sub->name,
+                    'code' => $sub->code ?? '',
+                    'credits' => $sub->credits ?? $sub->credit ?? 0,
+                    'enrolled_count' => $enrolledCount,
+                ];
+            })
+            ->values();
+
         return Inertia::render('Admin/Classes/Show', [
             'classData' => $class,
-            'students' => $students
+            'students' => $students,
+            'subjects' => $subjects,
         ]);
     }
     

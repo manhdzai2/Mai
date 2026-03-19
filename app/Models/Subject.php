@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
-    protected $fillable = ['name', 'credit'];
+    protected $fillable = ['name', 'code', 'credit', 'credits'];
 
     public function enrollments(): HasMany
     {

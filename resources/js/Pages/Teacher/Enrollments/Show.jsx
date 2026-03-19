@@ -1,160 +1,131 @@
 import React, { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import * as XLSX from 'xlsx';
-import toast from 'react-hot-toast';
 
-export default function Show({ subject, enrollments }) {
-    const [searchTerm, setSearchTerm] = useState('');
+export default function Show({ subject, semester, enrollments }) {
+    // Tính toán thống kê
+    const stats = React.useMemo(() => {
+        if (!enrollments || enrollments.length === 0) return null;
+        
+        const total = enrollments.length;
+        let sumTotal = 0;
+        let passCount = 0;
+        let entriesWithScore = 0;
 
-    const filteredEnrollments = enrollments.filter((enrollment) => {
-        const studentName = (enrollment.student?.user?.name || '').toLowerCase();
-        const studentCode = (enrollment.student?.student_code || '').toLowerCase();
-        const query = searchTerm.toLowerCase();
-        return studentName.includes(query) || studentCode.includes(query);
-    });
-
-    // --- HÀM TÍNH TOÁN THỐNG KÊ LỚP HỌC ---
-    const getStats = () => {
-        let passed = 0;
-        let failed = 0;
-        enrollments.forEach(e => {
-            const att = parseFloat(e.score?.attendance_score) || 0;
-            const mid = parseFloat(e.score?.midterm_score) || 0;
-            const fin = parseFloat(e.score?.final_score) || 0;
-            // Chỉ tính những bạn đã có điểm cuối kỳ
-            if (e.score?.final_score !== null && e.score?.final_score !== undefined) {
-                const total = (att * 0.1) + (mid * 0.3) + (fin * 0.6);
-                if (total >= 4.0) passed++; else failed++;
+        enrollments.forEach(enr => {
+            if (enr.score && enr.score.total_score !== null) {
+                sumTotal += parseFloat(enr.score.total_score);
+                entriesWithScore++;
+                if (parseFloat(enr.score.total_score) >= 4.0) passCount++;
             }
         });
-        return { passed, failed, totalGraded: passed + failed };
-    };
-    const stats = getStats();
 
-    const exportToExcel = () => {
-        const dataToExport = filteredEnrollments.map((e, index) => {
-            const att = parseFloat(e.score?.attendance_score) || 0;
-            const mid = parseFloat(e.score?.midterm_score) || 0;
-            const fin = parseFloat(e.score?.final_score) || 0;
-            const total = ((att * 0.1) + (mid * 0.3) + (fin * 0.6)).toFixed(1);
-            
-            let grade = 'F';
-            if (total >= 8.5) grade = 'A';
-            else if (total >= 7.0) grade = 'B';
-            else if (total >= 5.5) grade = 'C';
-            else if (total >= 4.0) grade = 'D';
-
-            return {
-                'STT': index + 1,
-                'Mã Sinh Viên': e.student?.student_code || 'N/A',
-                'Họ và Tên': e.student?.user?.name || 'Chưa cập nhật tên',
-                'Điểm Chuyên Cần (10%)': e.score?.attendance_score || '',
-                'Điểm Giữa Kỳ (30%)': e.score?.midterm_score || '',
-                'Điểm Cuối Kỳ (60%)': e.score?.final_score || '',
-                'Tổng Kết': e.score?.final_score ? total : '',
-                'Xếp Loại': e.score?.final_score ? grade : ''
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Bảng Điểm");
-        worksheet['!cols'] = [ { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 } ];
-        XLSX.writeFile(workbook, `Bang_Diem_${subject.name}.xlsx`);
-    };
-
-    const printToPDF = () => {
-        window.print();
-    };
+        return {
+            total,
+            avg: entriesWithScore > 0 ? (sumTotal / entriesWithScore).toFixed(2) : '0.00',
+            passRate: total > 0 ? ((passCount / total) * 100).toFixed(1) : '0.0',
+            entriesWithScore
+        };
+    }, [enrollments]);
 
     return (
-        <AppLayout>
-            <Head title={`Chấm điểm - ${subject.name}`} />
+        <div className="space-y-8 animate-fade-in pb-12 max-w-7xl mx-auto">
+            <Head title={`Quản Lý Điểm - ${subject?.name}`} />
 
-            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 print:hidden">
+            {/* Back Button & Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <Link href="/teacher/enrollments" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 mb-3 transition-colors">
-                        <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        Quay lại danh sách lớp
+                    <Link
+                        href={route('teacher.enrollments.index')}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-outline hover:text-indigo-600 dark:hover:text-primary transition-colors mb-3"
+                    >
+                        <span className="material-symbols-outlined text-lg">arrow_back</span>
+                        Quay lại danh sách lớp dạy
                     </Link>
-                    <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                        {subject.name}
-                    </h1>
-                    
-                    {/* KHU VỰC THỐNG KÊ NHANH */}
-                    <div className="flex items-center gap-4 mt-3">
-                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 rounded-lg text-sm font-semibold border border-indigo-100 dark:border-indigo-500/20">
-                            Sĩ số: {enrollments.length}
-                        </span>
-                        {stats.totalGraded > 0 && (
-                            <>
-                                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-lg text-sm font-semibold border border-emerald-100 dark:border-emerald-500/20">
-                                    Qua môn: {stats.passed} ({(stats.passed / stats.totalGraded * 100).toFixed(0)}%)
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 dark:bg-primary flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-500/20">
+                            {subject?.name?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-gray-900 dark:text-white leading-none">
+                                {subject?.name}
+                            </h2>
+                            <div className="flex items-center gap-3 mt-2">
+                                <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-primary/10 border border-indigo-100 dark:border-primary/20 text-[10px] font-bold text-indigo-600 dark:text-primary tracking-widest uppercase font-mono">
+                                    {subject?.code}
                                 </span>
-                                <span className="px-3 py-1 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 rounded-lg text-sm font-semibold border border-rose-100 dark:border-rose-500/20">
-                                    Trượt: {stats.failed} ({(stats.failed / stats.totalGraded * 100).toFixed(0)}%)
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                    Học Kỳ Khóa {semester}
                                 </span>
-                            </>
-                        )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <div className="relative w-full sm:w-64">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Tìm tên hoặc mã SV..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
-                        />
-                    </div>
 
-                    <button onClick={exportToExcel} className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-xl text-sm font-semibold transition-colors border border-emerald-200 dark:border-emerald-800/50">
-                        Xuất Excel
-                    </button>
-                    <button onClick={printToPDF} className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 rounded-xl text-sm font-semibold transition-colors border border-rose-200 dark:border-rose-800/50">
-                        In PDF
-                    </button>
+                <div className="flex gap-4">
+                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Sĩ Số</p>
+                        <p className="text-2xl font-black text-gray-900 dark:text-white">{stats?.total || 0}</p>
+                    </div>
+                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-b-emerald-500">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Tỷ Lệ Đạt</p>
+                        <p className="text-2xl font-black text-emerald-600 dark:text-secondary">{stats?.passRate || 0}%</p>
+                    </div>
+                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-b-indigo-500">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Điểm TB</p>
+                        <p className="text-2xl font-black text-indigo-600 dark:text-primary">{stats?.avg || '0.00'}</p>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden print:shadow-none print:border-none print:bg-transparent">
+            <div className="glass-card bg-white dark:bg-surface-container-low rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
+                <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-secondary animate-pulse"></span>
+                        <span className="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">Bảng Ghi Điểm Học Viên</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-500 dark:text-outline">Đã nhập: {stats?.entriesWithScore || 0}/{stats?.total || 0}</p>
+                </div>
+                
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50/50 dark:bg-gray-800/50 print:bg-transparent">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Họ & Tên SV</th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Mã SV</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">CC (10%)</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">GK (30%)</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">CK (60%)</th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider w-24">Tổng</th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider w-24">Loại</th>
-                                <th className="px-4 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-28 print:hidden">Thao tác</th>
+                    <table className="w-full text-left whitespace-nowrap">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-surface-container-low/50 border-b border-gray-200 dark:border-outline-variant/10">
+                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline w-16 text-center">STT</th>
+                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline w-64">Hồ Sơ Căn Bản</th>
+                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Điểm Tiếp Xúc</th>
+                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5 border-x border-indigo-100 dark:border-primary/10">Chuyên Cần (10%)</th>
+                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5">Giữa Kỳ (30%)</th>
+                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5 border-l border-indigo-100 dark:border-primary/10">Cuối Bài (60%)</th>
+                                <th className="px-6 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Ghi Xét Lệnh</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 print:bg-transparent print:divide-gray-300">
-                            {filteredEnrollments.length === 0 ? (
-                                <tr><td colSpan="8" className="px-6 py-12 text-center text-gray-500">Không tìm thấy sinh viên nào.</td></tr>
-                            ) : (
-                                filteredEnrollments.map((enrollment) => (
-                                    <ScoreRow key={enrollment.id} enrollment={enrollment} />
+                        <tbody className="divide-y divide-gray-100 dark:divide-outline-variant/5">
+                            {enrollments && enrollments.length > 0 ? (
+                                enrollments.map((enrollment, index) => (
+                                    <ScoreRow key={enrollment.id} enrollment={enrollment} index={index} />
                                 ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="px-6 py-24 text-center text-gray-500 dark:text-outline">
+                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-surface-container-highest mb-4">
+                                            <span className="material-symbols-outlined text-3xl text-gray-400 dark:text-outline-variant">person_off</span>
+                                        </div>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-on-surface">Không Phát Hiện Hồ Sơ Tồn Tại</p>
+                                        <p className="text-xs mt-1">Sĩ số rỗng. Có vẻ chưa học thuyết nào gửi người tham khảo vào khóa.</p>
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </AppLayout>
+        </div>
     );
 }
 
-function ScoreRow({ enrollment }) {
+function ScoreRow({ enrollment, index }) {
     const { data, setData, post, processing } = useForm({
         enrollment_id: enrollment.id,
         attendance_score: enrollment.score?.attendance_score ?? '',
@@ -162,86 +133,111 @@ function ScoreRow({ enrollment }) {
         final_score: enrollment.score?.final_score ?? '',
     });
 
-    // --- HÀM TÍNH ĐIỂM TỔNG KẾT VÀ XẾP LOẠI REAL-TIME ---
-    const calculateGrade = () => {
-        // Nếu chưa nhập điểm cuối kỳ thì khoan tính xếp loại
-        if (data.final_score === '') return { total: '-', letter: '-', colorClass: 'text-gray-400 bg-gray-50 dark:bg-gray-800' };
+    const [isEditing, setIsEditing] = useState(false);
 
-        const att = parseFloat(data.attendance_score) || 0;
-        const mid = parseFloat(data.midterm_score) || 0;
-        const fin = parseFloat(data.final_score) || 0;
-        
-        const total = (att * 0.1 + mid * 0.3 + fin * 0.6).toFixed(1);
-        
-        if (total >= 8.5) return { total, letter: 'A', colorClass: 'text-emerald-700 bg-emerald-100 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800' };
-        if (total >= 7.0) return { total, letter: 'B', colorClass: 'text-blue-700 bg-blue-100 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-800' };
-        if (total >= 5.5) return { total, letter: 'C', colorClass: 'text-amber-700 bg-amber-100 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800' };
-        if (total >= 4.0) return { total, letter: 'D', colorClass: 'text-orange-700 bg-orange-100 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-800' };
-        
-        return { total, letter: 'F', colorClass: 'text-rose-700 bg-rose-100 border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-800' };
-    };
-
-    const gradeInfo = calculateGrade();
-
-    const submit = (e) => {
-        e.preventDefault();
-        const toastId = toast.loading('Đang lưu...');
-        post('/teacher/enrollments/update-score', {
+    const handleSave = () => {
+        post(route('teacher.enrollments.update-score'), {
             preserveScroll: true,
-            onSuccess: () => toast.success(`Đã lưu điểm ${enrollment.student?.user?.name}`, { id: toastId }),
-            onError: () => toast.error('Lưu thất bại!', { id: toastId })
+            onSuccess: () => setIsEditing(false),
         });
     };
 
-    const renderInput = (name, value) => (
-        <input
-            type="number" step="0.1" min="0" max="10"
-            value={value}
-            onChange={(e) => setData(name, e.target.value)}
-            className="w-16 text-center rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors print:border-none print:bg-transparent print:p-0 print:text-black print:font-bold"
-            placeholder="-"
-        />
-    );
-
     return (
-        <tr className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
-            <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs mr-3">
-                        {enrollment.student?.user?.name?.charAt(0) || 'S'}
+        <tr className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
+            <td className="px-6 py-4 text-center text-xs font-bold text-gray-400 dark:text-outline-variant">
+                {index + 1}
+            </td>
+            <td className="px-6 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded border border-gray-200 dark:border-outline-variant/20 bg-gray-100 dark:bg-surface-container-highest flex items-center justify-center text-gray-900 dark:text-on-surface font-bold text-xs uppercase shadow-inner">
+                        {enrollment.student?.user?.name ? enrollment.student.user.name.charAt(0) : 'S'}
                     </div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-gray-200">
-                        {enrollment.student?.user?.name || 'Chưa cập nhật tên'}
+                    <div>
+                        <div className="font-bold text-gray-900 dark:text-white text-sm tracking-wide">{enrollment.student?.user?.name || 'Vô Danh'}</div>
+                        <div className="text-[10px] font-mono font-bold text-gray-500 dark:text-outline mt-0.5 uppercase">{enrollment.student?.student_code}</div>
                     </div>
                 </div>
             </td>
-            <td className="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
-                {enrollment.student?.student_code || 'N/A'}
+            <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-on-surface-variant">
+                {enrollment.student?.user?.email}
             </td>
             
-            <td className="px-2 py-4 whitespace-nowrap text-center">{renderInput('attendance_score', data.attendance_score)}</td>
-            <td className="px-2 py-4 whitespace-nowrap text-center">{renderInput('midterm_score', data.midterm_score)}</td>
-            <td className="px-2 py-4 whitespace-nowrap text-center">{renderInput('final_score', data.final_score)}</td>
-            
-            {/* CỘT TỔNG KẾT VÀ XẾP LOẠI MỚI */}
-            <td className="px-4 py-4 whitespace-nowrap text-center">
-                <span className="font-bold text-gray-900 dark:text-gray-100">{gradeInfo.total}</span>
+            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 border-l border-indigo-100 dark:border-primary/10 transition-colors">
+                {isEditing ? (
+                    <input 
+                        type="number" step="0.1" min="0" max="10"
+                        value={data.attendance_score}
+                        onChange={e => setData('attendance_score', e.target.value)}
+                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                    />
+                ) : (
+                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
+                        {data.attendance_score !== '' ? data.attendance_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    </span>
+                )}
             </td>
-            <td className="px-4 py-4 whitespace-nowrap text-center">
-                <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-sm font-bold border ${gradeInfo.colorClass}`}>
-                    {gradeInfo.letter}
-                </span>
+            
+            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 transition-colors">
+                {isEditing ? (
+                    <input 
+                        type="number" step="0.1" min="0" max="10"
+                        value={data.midterm_score}
+                        onChange={e => setData('midterm_score', e.target.value)}
+                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                    />
+                ) : (
+                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
+                        {data.midterm_score !== '' ? data.midterm_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    </span>
+                )}
+            </td>
+            
+            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 border-r border-indigo-100 dark:border-primary/10 transition-colors">
+                {isEditing ? (
+                    <input 
+                        type="number" step="0.1" min="0" max="10"
+                        value={data.final_score}
+                        onChange={e => setData('final_score', e.target.value)}
+                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                    />
+                ) : (
+                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
+                        {data.final_score !== '' ? data.final_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    </span>
+                )}
             </td>
 
-            <td className="px-4 py-4 whitespace-nowrap text-right print:hidden">
-                <button
-                    onClick={submit}
-                    disabled={processing}
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/20 dark:text-indigo-400 dark:hover:bg-indigo-500/30 disabled:opacity-50"
-                >
-                    {processing ? '...' : 'Lưu'}
-                </button>
+            <td className="px-6 py-4 text-center">
+                {isEditing ? (
+                    <div className="flex items-center justify-center gap-2">
+                        <button 
+                            onClick={handleSave} 
+                            disabled={processing}
+                            className="p-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white dark:text-secondary dark:bg-secondary/10 dark:hover:bg-secondary dark:hover:text-[#002113] border border-emerald-100 dark:border-secondary/20 rounded-md transition-all shadow-md shadow-emerald-500/10 dark:shadow-secondary/10"
+                            title="Lưu Thành Quả"
+                        >
+                            <span className="material-symbols-outlined text-lg">check</span>
+                        </button>
+                        <button 
+                            onClick={() => setIsEditing(false)} 
+                            className="p-1.5 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 dark:text-outline dark:hover:text-white dark:bg-surface-container-highest dark:hover:bg-outline-variant/30 rounded-md transition-all border border-gray-200 dark:border-outline-variant/20"
+                            title="Xóa Thao Tác Chặn"
+                        >
+                            <span className="material-symbols-outlined text-lg">close</span>
+                        </button>
+                    </div>
+                ) : (
+                    <button 
+                        onClick={() => setIsEditing(true)}
+                        className="mx-auto flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-600 hover:text-white dark:text-primary dark:bg-primary/10 dark:border-primary/20 dark:hover:bg-primary dark:hover:text-on-primary rounded transition-all opacity-50 sm:opacity-0 group-hover:opacity-100 shadow-sm"
+                    >
+                        <span className="material-symbols-outlined text-[14px]">edit_note</span>
+                        Thao Tác Điểm
+                    </button>
+                )}
             </td>
         </tr>
     );
 }
+
+Show.layout = page => <AppLayout children={page} />;

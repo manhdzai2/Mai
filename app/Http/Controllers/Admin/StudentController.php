@@ -76,6 +76,21 @@ class StudentController extends Controller
         ]);
     }
 
+    public function show($id)
+    {
+        $student = Student::with([
+            'user',
+            'class',
+            'enrollments.subject',
+            'enrollments.score',
+            'enrollments.teacher.user',
+        ])->findOrFail($id);
+
+        return Inertia::render('Admin/Students/Show', [
+            'student' => $student,
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $student = Student::findOrFail($id);

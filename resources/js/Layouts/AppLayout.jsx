@@ -1,7 +1,6 @@
-import React from 'react';
-import { Toaster } from 'react-hot-toast';
-import { Link, usePage } from '@inertiajs/react';
-import ThemeToggle from '@/Components/ThemeToggle';
+import React, { useEffect, useState } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import { Link, usePage, router } from '@inertiajs/react';
 
 export default function AppLayout({ children }) {
     const { auth, flash } = usePage().props;
@@ -10,168 +9,273 @@ export default function AppLayout({ children }) {
     const roleId = auth?.user?.role_id;
     const _role = roleName || (roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : roleId === 3 ? 'student' : '');
 
-    // --- CẤU HÌNH MENU CÓ KÈM ICON ---
-    const navAdmin = [
-        { title: 'Tổng quan', href: '/admin/dashboard', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> },
-        { title: 'Môn học', href: '/admin/subjects', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
-        { title: 'Lớp học', href: '/admin/classrooms', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m3-4h1m-1 4h1m-5 8H8a2 2 0 00-2-2V7a2 2 0 002-2h8a2 2 0 002 2v12a2 2 0 00-2 2h-4z" /></svg> }, { title: 'Sinh viên', href: '/admin/students', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
-        { title: 'Bảng điểm', href: '/admin/scores', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> },
-    ];
-
-    const navTeacher = [
-        { title: 'Lớp học của tôi', href: '/teacher/enrollments', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> }
-    ];
-
-    // ĐÃ THÊM LỊCH HỌC VÀO ĐÂY CHO SINH VIÊN
-    const navStudent = [
-        {
-            title: 'Bảng điểm',
-            href: '/student/profile',
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-        },
-        {
-            title: 'Lịch học',
-            href: '/student/schedule',
-            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success, {
+                style: { borderRadius: '12px', background: '#2d3449', color: '#4edea3', border: '1px solid #4edea3', fontSize: '14px', fontWeight: 'bold' },
+            });
         }
-    ];
-
-    const nav = _role === 'admin' ? navAdmin : _role === 'teacher' ? navTeacher : navStudent;
+        if (flash?.error) {
+            toast.error(flash.error, {
+                style: { borderRadius: '12px', background: '#2d3449', color: '#ffb4ab', border: '1px solid #ffb4ab', fontSize: '14px', fontWeight: 'bold' },
+            });
+        }
+    }, [flash]);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-900 text-gray-800 dark:text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-300">
-            <Topbar user={auth?.user} role={_role} />
-            <div className="flex flex-1 overflow-hidden max-w-[1600px] mx-auto w-full">
-                <Sidebar nav={nav} />
-                <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-                    <div className="max-w-7xl mx-auto">
-                        {flash?.success && <Banner type="success" message={flash.success} />}
-                        {flash?.error && <Banner type="error" message={flash.error} />}
-
-                        <div className="animate-fade-in-up">
-                            {children}
-                        </div>
+        <div className="bg-gray-50 text-gray-900 dark:bg-background dark:text-on-surface min-h-screen font-['Inter'] selection:bg-indigo-500/30 dark:selection:bg-primary/30 flex transition-colors duration-300">
+            <Sidebar role={_role} />
+            
+            <main className="flex-1 ml-64 min-h-screen flex flex-col relative z-0">
+                <Topbar user={auth?.user} role={_role} />
+                
+                <div className="flex-1 mt-16 p-8 relative">
+                    <div className="max-w-[1400px] mx-auto animate-fade-in-up">
+                        {children}
                     </div>
-                </main>
-            </div>
-            <Toaster position="top-right" />
+                </div>
+            </main>
+            <Toaster position="bottom-right" />
         </div>
     );
 }
 
-// ---------------- CÁC COMPONENT CON ---------------- //
-
-function Topbar({ user, role }) {
-    return (
-        <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm transition-colors duration-300">
-            <div className="max-w-[1600px] mx-auto px-4 h-16 flex items-center justify-between">
-
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
-                        <Logo />
-                    </div>
-                    <div>
-                        <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-500">
-                            UniCore
-                        </span>
-                        <p className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-widest -mt-1">
-                            Student Management
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-5">
-                    <ThemeToggle />
-
-                    <div className="hidden md:flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-5">
-                        <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-none">
-                                {user?.name || 'Khách'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize mt-1">
-                                {role === 'teacher' ? 'Giảng viên' : role === 'admin' ? 'Quản trị viên' : 'Sinh viên'}
-                            </p>
-                        </div>
-                        <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-700">
-                            {user?.name?.charAt(0) || 'U'}
-                        </div>
-                    </div>
-
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-full transition"
-                        title="Đăng xuất"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    </Link>
-                </div>
-
-            </div>
-        </header>
-    );
-}
-
-function Sidebar({ nav }) {
+function Sidebar({ role }) {
     const { url } = usePage();
 
+    const navAdmin = [
+        { title: 'Bảng Điều Khiển', href: '/admin/dashboard', icon: 'dashboard' },
+        { title: 'Giảng Viên', href: '/admin/teachers', icon: 'person' },
+        { title: 'Sinh Viên', href: '/admin/students', icon: 'group' },
+        { title: 'Học Phần', href: '/admin/subjects', icon: 'book' },
+        { title: 'Khóa / Ngành', href: '/admin/classes', icon: 'class' },
+        { title: 'Lớp Học Phần', href: '/admin/classrooms', icon: 'meeting_room' },
+    ];
+
+    const navTeacher = [
+        { title: 'Lớp Phụ Trách', href: '/teacher/enrollments', icon: 'menu_book' }
+    ];
+
+    const navStudent = [
+        { title: 'Hồ Sơ Cá Nhân', href: '/student/profile', icon: 'analytics' },
+        { title: 'Thời Khóa Biểu', href: '/student/schedule', icon: 'calendar_today' },
+    ];
+
+    const nav = role === 'admin' ? navAdmin : role === 'teacher' ? navTeacher : navStudent;
+    const portalName = role === 'teacher' ? 'Cổng Giảng Viên' : role === 'student' ? 'Cổng Sinh Viên' : 'Cổng Quản Trị';
+
     return (
-        <aside className="w-64 shrink-0 bg-transparent hidden md:block border-r border-gray-100 dark:border-gray-800 transition-colors duration-300 py-6 px-4">
-            <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 px-3">
-                Menu chính
+        <aside className="fixed left-0 top-0 h-full z-40 flex flex-col bg-white/80 dark:bg-[#0b1326]/70 backdrop-blur-xl w-64 border-r border-gray-200 dark:border-[#464555]/15 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-colors duration-300">
+            <div className="p-8 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 dark:from-primary dark:to-primary-container flex items-center justify-center shadow-lg shadow-indigo-500/20 dark:shadow-primary/20">
+                    <span className="material-symbols-outlined text-white text-lg">school</span>
+                </div>
+                <div>
+                    <h1 className="text-xl font-black tracking-tighter text-indigo-900 dark:text-[#c3c0ff]">The Muse</h1>
+                    <p className="font-['Inter'] uppercase font-bold tracking-widest text-[0.625rem] text-gray-500 dark:text-outline">{portalName}</p>
+                </div>
             </div>
 
-            <nav className="space-y-1.5">
+            <nav className="flex-1 px-4 py-4 space-y-2">
+                <div className="px-4 mb-3 font-['Inter'] uppercase tracking-widest text-[0.625rem] font-bold text-gray-400 dark:text-outline">Cấu trúc Điều hướng</div>
                 {nav.map(item => {
                     const isActive = url.startsWith(item.href);
-
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-500/20'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 hover:shadow-sm'
-                                }`}
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 active:scale-95 border-r-2 ${
+                                isActive
+                                    ? 'text-indigo-700 bg-indigo-50 border-indigo-500 dark:text-[#c3c0ff] dark:bg-gradient-to-r dark:from-[#c3c0ff]/10 dark:to-transparent dark:border-[#c3c0ff]'
+                                    : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-transparent hover:-translate-y-0.5 dark:text-[#918fa1] dark:hover:text-[#c3c0ff] dark:hover:bg-[#2d3449]/50'
+                            }`}
                         >
-                            <span className={isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}>
+                            <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
                                 {item.icon}
                             </span>
-                            {item.title}
+                            <span className="font-['Inter'] uppercase font-bold tracking-widest text-[0.6875rem]">{item.title}</span>
                         </Link>
                     );
                 })}
             </nav>
+
+            <div className="p-6 border-t border-gray-100 dark:border-outline-variant/10 space-y-2">
+                <Link
+                    href={route('logout')}
+                    method="post"
+                    as="button"
+                    className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-gray-500 hover:text-rose-600 hover:bg-rose-50 dark:text-outline dark:hover:text-tertiary dark:hover:bg-tertiary/10 group"
+                >
+                    <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">logout</span>
+                    <span className="font-['Inter'] uppercase font-bold tracking-widest text-[0.6875rem]">Đăng Xuất</span>
+                </Link>
+            </div>
         </aside>
     );
 }
 
-function Banner({ type = 'success', message }) {
-    const isSuccess = type === 'success';
-    return (
-        <div className={`mb-6 p-4 rounded-2xl flex items-center gap-4 border shadow-sm ${isSuccess
-                ? 'bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/50'
-                : 'bg-rose-50/50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-300 border-rose-200/60 dark:border-rose-800/50'
-            }`}>
-            <div className={`p-2 rounded-full ${isSuccess ? 'bg-emerald-100 dark:bg-emerald-800/50' : 'bg-rose-100 dark:bg-rose-800/50'}`}>
-                {isSuccess ? (
-                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                ) : (
-                    <svg className="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                )}
-            </div>
-            <span className="font-medium text-sm">{message}</span>
-        </div>
-    );
-}
+function Topbar({ user, role }) {
+    const [isDarkMode, setIsDarkMode] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showResults, setShowResults] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchTimeoutRef = React.useRef(null);
+    const searchContainerRef = React.useRef(null);
 
-function Logo() {
+    useEffect(() => {
+        const isDark = document.documentElement.classList.contains('dark');
+        setIsDarkMode(isDark);
+    }, []);
+
+    // Click outside to close
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+                setShowResults(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSearch = (value) => {
+        setSearchQuery(value);
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        
+        if (value.length < 2) {
+            setSearchResults([]);
+            setShowResults(false);
+            return;
+        }
+
+        setIsSearching(true);
+        searchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`/search?q=${encodeURIComponent(value)}`);
+                const data = await res.json();
+                setSearchResults(data.results || []);
+                setShowResults(true);
+            } catch (e) {
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300);
+    };
+
+    const typeLabels = { student: 'Sinh viên', teacher: 'Giảng viên', subject: 'Học phần', class: 'Lớp/Ngành' };
+    const typeColors = {
+        student: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-secondary/10 dark:text-secondary dark:border-secondary/20',
+        teacher: 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-primary/10 dark:text-primary dark:border-primary/20',
+        subject: 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-primary-container/20 dark:text-primary-fixed-dim dark:border-primary/20',
+        class: 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-tertiary/10 dark:text-tertiary dark:border-tertiary/20',
+    };
+
+    const toggleTheme = () => {
+        const html = document.documentElement;
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            localStorage.theme = 'light';
+            setIsDarkMode(false);
+        } else {
+            html.classList.add('dark');
+            localStorage.theme = 'dark';
+            setIsDarkMode(true);
+        }
+    };
+
     return (
-        <svg className="h-6 w-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 14l9-5-9-5-9 5 9 5z" />
-            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
-        </svg>
+        <header className="fixed top-0 right-0 left-64 z-30 flex justify-between items-center px-8 h-16 bg-white/80 dark:bg-[#0b1326]/70 backdrop-blur-xl border-b border-gray-200 dark:border-[#464555]/15 shadow-sm transition-colors duration-300">
+            <div className="flex items-center gap-6">
+                <div className="relative group hidden md:block" ref={searchContainerRef}>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 dark:text-outline text-lg group-focus-within:text-indigo-500 dark:group-focus-within:text-primary transition-colors z-10">search</span>
+                    <input 
+                        type="text" 
+                        className="bg-gray-100/50 dark:bg-surface-container-highest/50 border-none rounded-xl pl-10 pr-4 py-2 text-sm w-80 focus:ring-1 focus:ring-indigo-500 dark:focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-outline/40 font-['Inter'] transition-all text-gray-900 dark:text-on-surface outline-none"
+                        placeholder="Tìm sinh viên, giảng viên, học phần..." 
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                    />
+
+                    {/* Search Results Dropdown */}
+                    {showResults && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-surface-container-low rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-2xl overflow-hidden z-50 max-h-[400px] overflow-y-auto animate-fade-in">
+                            {isSearching ? (
+                                <div className="p-6 text-center">
+                                    <span className="material-symbols-outlined animate-spin text-indigo-500 dark:text-primary text-2xl">progress_activity</span>
+                                    <p className="text-xs text-gray-500 dark:text-outline mt-2">Đang tìm kiếm...</p>
+                                </div>
+                            ) : searchResults.length > 0 ? (
+                                <div className="py-2">
+                                    {searchResults.map((item, idx) => (
+                                        <a
+                                            key={idx}
+                                            href={item.url}
+                                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-container-highest/50 transition-colors group/item cursor-pointer"
+                                            onClick={() => { setShowResults(false); setSearchQuery(''); }}
+                                        >
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${typeColors[item.type]}`}>
+                                                <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover/item:text-indigo-600 dark:group-hover/item:text-primary transition-colors">{item.label}</p>
+                                                <p className="text-[10px] text-gray-500 dark:text-outline truncate">{item.sub}</p>
+                                            </div>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${typeColors[item.type]}`}>
+                                                {typeLabels[item.type]}
+                                            </span>
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-6 text-center">
+                                    <span className="material-symbols-outlined text-3xl text-gray-300 dark:text-outline-variant mb-2 block">search_off</span>
+                                    <p className="text-sm text-gray-500 dark:text-outline">Không tìm thấy kết quả cho "{searchQuery}"</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex items-center gap-6">
+                
+                {/* Theme Toggle */}
+                <button 
+                    onClick={toggleTheme}
+                    className="text-gray-400 dark:text-outline hover:text-indigo-600 dark:hover:text-white transition-colors active:scale-95 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
+                    title={isDarkMode ? "Chuyển giao diện Sáng" : "Chuyển giao diện Tối"}
+                >
+                    <span className="material-symbols-outlined text-[20px]">
+                        {isDarkMode ? 'light_mode' : 'dark_mode'}
+                    </span>
+                </button>
+
+                <button className="text-gray-400 dark:text-outline hover:text-indigo-600 dark:hover:text-white transition-colors active:scale-95 relative group flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-white/10" title="Thông báo hệ thống">
+                    <span className="material-symbols-outlined text-[20px]">notifications</span>
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 dark:bg-secondary rounded-full border-2 border-white dark:border-surface animate-pulse"></span>
+                </button>
+
+                <button className="text-gray-400 dark:text-outline hover:text-indigo-600 dark:hover:text-white transition-colors active:scale-95 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-white/10" title="Cài đặt tài khoản">
+                    <span className="material-symbols-outlined text-[20px]">settings</span>
+                </button>
+
+                <div className="h-8 w-[1px] bg-gray-200 dark:bg-outline-variant/20 mx-1"></div>
+
+                <div className="flex items-center gap-3 cursor-pointer group">
+                    <div className="text-right hidden sm:block">
+                        <p className="text-sm font-bold text-gray-900 dark:text-on-surface leading-tight">{user?.name || 'Khách truy cập'}</p>
+                        <p className="text-[0.625rem] font-black uppercase tracking-widest text-indigo-600 dark:text-primary/80">
+                             {role === 'admin' ? 'Đội ngũ Quản Trị' : role === 'teacher' ? 'Cán Bộ Giảng Viên' : 'Lớp Học Viên'}
+                        </p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-indigo-200 dark:border-primary/30 group-hover:border-indigo-500 dark:group-hover:border-primary transition-colors bg-white dark:bg-surface-container-highest flex items-center justify-center shadow-lg shadow-indigo-500/10 dark:shadow-primary/10">
+                        <span className="font-black text-indigo-600 dark:text-primary text-sm">{user?.name?.charAt(0) || 'U'}</span>
+                    </div>
+                </div>
+            </div>
+        </header>
     );
 }

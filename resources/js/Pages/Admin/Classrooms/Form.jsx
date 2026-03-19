@@ -2,38 +2,39 @@ import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Form({ mode, classData }) {
-    const isEditing = mode === 'edit';
+export default function Form({ classroom, subjects }) {
+    const isEditing = !!classroom;
 
     const { data, setData, post, put, processing, errors } = useForm({
-        name: classData?.name || '',
-        description: classData?.description || '',
+        name: classroom?.name || '',
+        subject_id: classroom?.subject_id || '',
+        room: classroom?.room || '',
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditing) {
-            put(route('admin.classes.update', classData.id));
+            put(route('admin.classrooms.update', classroom.id));
         } else {
-            post(route('admin.classes.store'));
+            post(route('admin.classrooms.store'));
         }
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up py-4">
-            <Head title={isEditing ? 'Sửa Lớp Cố vấn' : 'Tạo Lớp Cố vấn mới'} />
+            <Head title={isEditing ? 'Sửa Lớp Học phần' : 'Tạo Lớp Học phần'} />
 
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                        {isEditing ? 'Chỉnh sửa Lớp Cố vấn' : 'Khởi tạo Lớp Cố vấn mới'}
+                        {isEditing ? 'Chỉnh sửa Lớp Học phần' : 'Khởi tạo Lớp Học phần'}
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 font-medium">
-                        Quản lý các thông tin định danh của lớp hành chính.
+                        Quản lý mã lớp, liên kết học phần và điều phối phòng học.
                     </p>
                 </div>
                 <Link
-                    href={route('admin.classes.index')}
+                    href={route('admin.classrooms.index')}
                     className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 px-4 py-2 rounded-lg shadow-sm transition-all duration-200"
                 >
                     Hủy bỏ
@@ -47,45 +48,73 @@ export default function Form({ mode, classData }) {
                         <div className="md:col-span-1">
                             <h3 className="text-base font-bold text-gray-900 dark:text-white">Thông tin cơ sở</h3>
                             <p className="mt-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Mã lớp cố vấn (Lớp Sinh viên) dùng để nhóm các sinh viên lại với nhau theo khóa đào tạo chính quy.
+                                Mã lớp học phần hiển thị trên Thời khóa biểu Sinh viên và Hệ thống Đăng ký.
                             </p>
                         </div>
                         <div className="md:col-span-2 space-y-6">
                             
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Mã Lớp (Class Code) <span className="text-rose-500">*</span>
+                                    Mã Lớp Học phần <span className="text-rose-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
-                                    className={`w-full md:max-w-md px-4 py-2.5 rounded-lg border text-sm font-mono shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                    className={`w-full px-4 py-2.5 rounded-lg border text-sm font-mono shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
                                         errors.name 
                                         ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
                                         : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
                                     }`}
-                                    placeholder="Ví dụ: K62-CNTT-01"
+                                    placeholder="Ví dụ: SE101-01"
                                 />
                                 {errors.name && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.name}</p>}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Mô tả định hướng (Không bắt buộc)
+                                    Môn học Liên kết (Học Phần) <span className="text-rose-500">*</span>
                                 </label>
-                                <textarea
-                                    rows="4"
-                                    value={data.description}
-                                    onChange={e => setData('description', e.target.value)}
+                                <div className="relative">
+                                    <select
+                                        value={data.subject_id}
+                                        onChange={e => setData('subject_id', e.target.value)}
+                                        className={`appearance-none block w-full pl-4 pr-10 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                            errors.subject_id 
+                                            ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
+                                            : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                        }`}
+                                    >
+                                        <option value="">-- Chọn Môn học --</option>
+                                        {subjects.map(sub => (
+                                            <option key={sub.id} value={sub.id}>
+                                                {sub.code} - {sub.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </div>
+                                </div>
+                                {errors.subject_id && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.subject_id}</p>}
+                            </div>
+
+                            <div className="max-w-md">
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Phòng học
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.room}
+                                    onChange={e => setData('room', e.target.value)}
                                     className={`w-full px-4 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
-                                        errors.description 
+                                        errors.room 
                                         ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
                                         : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
                                     }`}
-                                    placeholder="Ví dụ: Lớp chất lượng cao định hướng kỹ sư Điện toán đám mây..."
+                                    placeholder="Ví dụ: P.301-A4"
                                 />
-                                {errors.description && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.description}</p>}
+                                {errors.room && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.room}</p>}
                             </div>
 
                         </div>
@@ -93,7 +122,7 @@ export default function Form({ mode, classData }) {
 
                     <div className="px-8 py-5 bg-gray-50 dark:bg-gray-800/80 flex items-center justify-end gap-3 border-t border-gray-100/80 dark:border-gray-700/50">
                         <Link
-                            href={route('admin.classes.index')}
+                            href={route('admin.classrooms.index')}
                             className="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-lg shadow-sm transition-all duration-200"
                         >
                             Hủy
@@ -109,7 +138,7 @@ export default function Form({ mode, classData }) {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             )}
-                            {isEditing ? 'Lưu cập nhật' : 'Hoàn tất khởi tạo'}
+                            {isEditing ? 'Lưu cập nhật' : 'Tạo Lớp'}
                         </button>
                     </div>
                 </form>

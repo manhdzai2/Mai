@@ -9,7 +9,9 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Subject;
 use App\Models\Score;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -35,6 +37,26 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        // Lịch thi sắp tới — lấy từ schedules trong DB
+        $upcomingExams = Schedule::with('subject')
+            ->orderBy('study_date')
+            ->orderBy('start_time')
+            ->limit(5)
+            ->get()
+            ->map(function ($sched) {
+                // Đếm số sinh viên đăng ký môn này
+                $studentCount = \App\Models\Enrollment::where('subject_id', $sched->subject_id)->count();
+                return [
+                    'subject_id' => $sched->subject_id,
+                    'subject' => $sched->subject->name ?? 'Chưa rõ',
+                    'code' => $sched->subject->code ?? '',
+                    'date' => Carbon::parse($sched->study_date)->format('d/m/Y'),
+                    'time' => Carbon::parse($sched->start_time)->format('H:i'),
+                    'room' => $sched->room,
+                    'student_count' => $studentCount,
+                ];
+            });
+
         return Inertia::render('Admin/Dashboard', [
             'cards' => [
                 'students' => $totalStudents,
@@ -48,6 +70,7 @@ class DashboardController extends Controller
                 'Yeu'  => (int) ($gradeStats['Yếu'] ?? 0),
             ],
             'subjectAverages' => $subjectAverages,
+            'upcomingExams' => $upcomingExams,
         ]);
     }
 }

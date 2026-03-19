@@ -10,7 +10,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\ScoreController;
 
 // Khai báo Controller của Teacher
 use App\Http\Controllers\Teacher\EnrollmentController;
@@ -51,6 +53,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Global Search API
+    Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('global.search');
 });
 
 // 4. NHÓM ROUTE DÀNH RIÊNG CHO ADMIN
@@ -62,8 +67,9 @@ Route::middleware(['auth', 'ensure.admin'])
         Route::resource('subjects', SubjectController::class);
         Route::resource('classes', ClassController::class);
         Route::resource('students', StudentController::class);
-        Route::resource('subjects', SubjectController::class);
+        Route::resource('teachers', TeacherController::class);
         Route::resource('classrooms', ClassroomController::class);
+        Route::resource('scores', ScoreController::class)->only(['index']);
     });
 
 // 5. NHÓM ROUTE DÀNH CHO TEACHER

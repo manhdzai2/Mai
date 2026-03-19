@@ -14,6 +14,7 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $student = Auth::user()->student()->with([
+            'user',
             'class',
             'enrollments.subject',
             'enrollments.score'

@@ -3,108 +3,180 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Show({ subjectData, enrollments }) {
-    return (
-        <div className="space-y-6 animate-fade-in max-w-6xl mx-auto">
-            <Head title={`Chi tiết môn: ${subjectData.name}`} />
+    // Tính toán thống kê nhanh
+    const stats = React.useMemo(() => {
+        if (!enrollments || enrollments.length === 0) return null;
+        const total = enrollments.length;
+        let sum = 0;
+        let pass = 0;
+        let count = 0;
 
-            {/* --- HEADER --- */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <Link href={route('admin.subjects.index')} className="inline-flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors mb-2">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        Quay lại danh sách
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-xl">
-                            {subjectData.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{subjectData.name}</h1>
-                            <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    {subjectData.credit} Tín chỉ
-                                </span>
-                                • ID Môn: {subjectData.id}
-                            </p>
+        enrollments.forEach(enr => {
+            if (enr.score && enr.score.total_score !== null) {
+                sum += parseFloat(enr.score.total_score);
+                count++;
+                if (parseFloat(enr.score.total_score) >= 4.0) pass++;
+            }
+        });
+
+        return {
+            total,
+            avg: count > 0 ? (sum / count).toFixed(2) : '0.00',
+            passRate: total > 0 ? ((pass / total) * 100).toFixed(1) : '0.0'
+        };
+    }, [enrollments]);
+
+    return (
+        <div className="space-y-8 animate-fade-in pb-12 max-w-7xl mx-auto">
+            <Head title={`Học Phần: ${subjectData.name}`} />
+
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 dark:from-tertiary dark:to-tertiary-container flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-rose-500/20">
+                        {subjectData.name?.charAt(0) || 'S'}
+                    </div>
+                    <div>
+                        <Link
+                            href={route('admin.subjects.index')}
+                            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-outline hover:text-rose-600 dark:hover:text-tertiary transition-colors mb-1"
+                        >
+                            <span className="material-symbols-outlined text-sm">arrow_back</span>
+                            Kho Học Phần
+                        </Link>
+                        <h2 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">
+                            {subjectData.name}
+                        </h2>
+                        <div className="flex items-center gap-3 mt-1">
+                            <span className="px-2.5 py-0.5 rounded-lg bg-rose-50 dark:bg-tertiary/10 border border-rose-100 dark:border-tertiary/20 text-[10px] font-bold text-rose-600 dark:text-tertiary tracking-widest uppercase font-mono">
+                                {subjectData.code}
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline">
+                                {subjectData.credits || subjectData.credit} Tín Chỉ Hệ Thống
+                            </span>
                         </div>
                     </div>
                 </div>
-                
-                <Link
-                    href={route('admin.subjects.edit', subjectData.id)}
-                    className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-xl shadow-sm transition-all font-medium"
-                >
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    Chỉnh sửa môn
-                </Link>
+
+                <div className="flex gap-4">
+                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-rose-500">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Sinh Viên</p>
+                        <p className="text-2xl font-black text-gray-900 dark:text-white">{stats?.total || 0}</p>
+                    </div>
+                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-emerald-500">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Tỷ Lệ Đạt</p>
+                        <p className="text-2xl font-black text-emerald-600 dark:text-secondary">{stats?.passRate || 0}%</p>
+                    </div>
+                </div>
             </div>
 
-            {/* --- BẢNG DANH SÁCH SINH VIÊN ĐĂNG KÝ --- */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        Sinh viên đang học ({enrollments.length})
-                    </h2>
-                </div>
-                
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-white border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mã SV</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và Tên</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Giảng viên dạy</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {enrollments.length > 0 ? (
-                                enrollments.map((item, index) => (
-                                    <tr key={index} className="hover:bg-gray-50/80 transition-colors group">
-                                        <td className="px-6 py-4 font-mono text-sm text-indigo-600 font-medium">
-                                            {item.student_code}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
-                                                    {item.student_name.charAt(0)}
-                                                </div>
-                                                <span className="font-medium text-gray-900">{item.student_name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {item.student_email}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {item.teacher_name ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                                    {item.teacher_name}
-                                                </span>
-                                            ) : (
-                                                <span className="text-gray-400 italic">Chưa xếp giảng viên</span>
-                                            )}
-                                        </td>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Main Content - Student List */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="glass-card bg-white dark:bg-transparent rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
+                        <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest">Danh Sách Học Viên Đăng Ký</h3>
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-outline italic">Dữ liệu thời gian thực</span>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead>
+                                    <tr className="bg-gray-50 dark:bg-surface-container-low/50 border-b border-gray-200 dark:border-outline-variant/10">
+                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Mã SV</th>
+                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Họ và Tên</th>
+                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-center">Điểm TB</th>
+                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-right">Giảng Viên Phụ Trách</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="4" className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center justify-center">
-                                            <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                            <p className="text-gray-500 font-medium">Chưa có sinh viên nào đăng ký môn học này.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-outline-variant/5">
+                                    {enrollments && enrollments.length > 0 ? (
+                                        enrollments.map((enr, idx) => (
+                                            <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
+                                                <td className="px-6 py-4 font-mono text-xs font-bold text-rose-600 dark:text-tertiary">
+                                                    {enr.student_code}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-gray-900 dark:text-white text-sm tracking-wide group-hover:text-rose-600 dark:group-hover:text-tertiary transition-colors">{enr.student_name}</div>
+                                                    <div className="text-[10px] text-gray-500 dark:text-outline">{enr.student_email}</div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`font-mono font-black text-sm ${
+                                                        !enr.score?.total_score ? 'text-gray-300' : 
+                                                        parseFloat(enr.score.total_score) >= 8.5 ? 'text-emerald-500' :
+                                                        parseFloat(enr.score.total_score) >= 7.0 ? 'text-indigo-500' :
+                                                        parseFloat(enr.score.total_score) >= 4.0 ? 'text-amber-500' : 'text-rose-500'
+                                                    }`}>
+                                                        {enr.score?.total_score || '--'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <span className="text-xs font-bold text-gray-600 dark:text-on-surface-variant italic">
+                                                        {enr.teacher_name}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-16 text-center text-gray-400 dark:text-outline uppercase tracking-widest text-xs font-bold">Chưa có dữ liệu đăng ký</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar Info */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="glass-card bg-white dark:bg-surface-container-low rounded-2xl p-6 border border-gray-200 dark:border-outline-variant/10 shadow-sm">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-outline mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">info</span>
+                            Thông Tin Cấu Trình
+                        </h4>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-500 dark:text-outline uppercase tracking-tighter">Tên Chính Thức</p>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white capitalize">{subjectData.name}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-500 dark:text-outline uppercase tracking-tighter">Số Tín Chỉ Quy Đổi</p>
+                                <p className="text-sm font-black text-rose-600 dark:text-tertiary">{subjectData.credits || subjectData.credit} TC</p>
+                            </div>
+                            <div className="pt-4 border-t border-gray-100 dark:border-outline-variant/10">
+                                <Link
+                                    href={route('admin.subjects.edit', subjectData.id)}
+                                    className="w-full flex items-center justify-center gap-2 bg-gray-900 dark:bg-surface-container-highest text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-black dark:hover:bg-white dark:hover:text-black transition-all active:scale-95 shadow-lg shadow-black/10"
+                                >
+                                    <span className="material-symbols-outlined text-lg">edit</span>
+                                    Chỉnh Sửa Học Phần
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card bg-gradient-to-br from-indigo-600 to-purple-700 dark:from-primary dark:to-primary-container rounded-2xl p-6 text-white shadow-xl shadow-indigo-500/20">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-4">Ghi Chú Đào Tạo</h4>
+                        <p className="text-xs font-medium leading-relaxed opacity-90">
+                            Học phần này đóng vai trò quan trọng trong khung chương trình. Yêu cầu giảng viên cập nhật điểm số đúng hạn định kỳ sau mỗi học phần.
+                        </p>
+                        <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
+                            <div className="text-center">
+                                <p className="text-lg font-black">{stats?.avg || '0.00'}</p>
+                                <p className="text-[8px] font-bold uppercase opacity-60">Điểm TB Môn</p>
+                            </div>
+                            <div className="w-[1px] h-6 bg-white/20"></div>
+                            <div className="text-center">
+                                <p className="text-lg font-black">{stats?.passRate || 0}%</p>
+                                <p className="text-[8px] font-bold uppercase opacity-60">Tỷ lệ qua môn</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-// Bọc Component Layout
 Show.layout = page => <AppLayout children={page} />;

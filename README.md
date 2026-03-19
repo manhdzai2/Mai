@@ -59,17 +59,13 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
-
-Admin:
-Email: admin@example.com – Pass:    Admin@123
-URL sau login: /admin/dashboard
-
-
-Teacher:
-Email: teacher@example.com – Pass: Teacher@123
-URL: /teacher/enrollments
-
-
-Student:
-Email: student@example.com – Pass: Student@123
-URL: /student/profile
+Vai trò	Email	Mật khẩu
+Admin	
+admin@fbu.edu.vn
+password
+Giảng viên	
+huong.tt@fbu.edu.vn
+password
+Sinh viên	
+student@fbu.edu.vn
+password

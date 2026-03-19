@@ -64,10 +64,26 @@ class SubjectController extends Controller
         return redirect()->route('admin.subjects.index')->with('success', 'Đã cập nhật môn học!');
     }
 
-    public function destroy(Subject $subject)
+    public function show($id)
     {
-        // Có thể thêm logic kiểm tra xem môn học đã có lớp/sinh viên chưa trước khi xóa
-        $subject->delete();
-        return back()->with('success', 'Đã xóa môn học!');
+        $subject = Subject::findOrFail($id);
+        
+        $enrollments = \App\Models\Enrollment::with(['student.user', 'teacher.user'])
+            ->where('subject_id', $id)
+            ->get()
+            ->map(function ($enr) {
+                return [
+                    'student_code' => $enr->student->student_code ?? '',
+                    'student_name' => $enr->student->user->name ?? 'N/A',
+                    'student_email' => $enr->student->user->email ?? '',
+                    'teacher_name' => $enr->teacher->user->name ?? 'Chưa rõ',
+                    'score' => $enr->score,
+                ];
+            });
+
+        return Inertia::render('Admin/Subjects/Show', [
+            'subjectData' => $subject,
+            'enrollments' => $enrollments
+        ]);
     }
 }
