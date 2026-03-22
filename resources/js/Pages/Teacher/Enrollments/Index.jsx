@@ -1,75 +1,117 @@
 import React from 'react';
-import AppLayout from '@/Layouts/AppLayout';
-import { Head, Link } from '@inertiajs/react';
+import TeacherLayout from '@/Layouts/TeacherLayout';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Index({ courses }) {
-    return (
-        <div className="space-y-8 animate-fade-in pb-12">
-            <Head title="Cổng Giảng Viên - Lớp Của Tôi" />
+    const { auth } = usePage().props;
+    const user = auth?.user;
 
-            <div className="flex justify-between items-end mb-6">
-                <div>
-                    <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-indigo-600 dark:text-primary mb-1 block">Không Gian Huấn Luyện</span>
-                    <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Khóa Học Đang Truyền Đạt</h2>
+    const activeClasses = courses?.length || 0;
+    const totalStudents = courses?.reduce((sum, c) => sum + (c.total_students || 0), 0) || 0;
+
+    return (
+        <div className="animate-fade-in space-y-8">
+            <Head title="Lớp học được giao" />
+
+            {/* Welcome Banner */}
+            <div className="bg-gradient-to-r from-primary to-secondary text-on-primary rounded-3xl p-8 mb-8 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-2">Chào mừng trở lại, {user?.name || 'Giảng viên'}!</h1>
+                        <p className="text-on-primary/80 font-medium">Thầy/Cô có {activeClasses} lớp học được phân công trong học kỳ này.</p>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/10 flex items-center gap-4 hover:border-primary/20 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <span className="material-symbols-outlined text-2xl">class</span>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Lớp học hiện tại</p>
+                        <p className="text-2xl font-black text-on-surface leading-none mt-1">{activeClasses}</p>
+                    </div>
+                </div>
+                <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/10 flex items-center gap-4 hover:border-secondary/20 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+                        <span className="material-symbols-outlined text-2xl">groups</span>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Tổng Sinh Viên</p>
+                        <p className="text-2xl font-black text-on-surface leading-none mt-1">{totalStudents}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section Title */}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h2 className="text-xl font-bold font-headline text-on-surface">Lớp học được giao</h2>
+                    <p className="text-sm text-on-surface-variant font-medium">Chọn một lớp để quản lý điểm số và chuyên cần</p>
+                </div>
+            </div>
+
+            {/* Classes Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses && courses.length > 0 ? (
                     courses.map((course, index) => (
-                        <div key={index} className="glass-card bg-white dark:bg-transparent rounded-2xl border border-gray-200 dark:border-outline-variant/10 hover:border-indigo-400 dark:hover:border-primary/30 transition-all duration-300 group overflow-hidden flex flex-col relative focus-within:ring-2 focus-within:ring-indigo-500 dark:focus-within:ring-primary shadow-sm hover:shadow-lg dark:shadow-none">
-                            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-indigo-500 to-indigo-400 dark:from-primary dark:to-primary-container scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                            
-                            <div className="p-8 flex-1 flex flex-col z-10">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="w-12 h-12 bg-indigo-50 dark:bg-primary/10 rounded-xl border border-indigo-100 dark:border-primary/20 flex items-center justify-center text-indigo-600 dark:text-primary shadow-[0_0_15px_rgba(195,192,255,0.1)] group-hover:scale-110 transition-transform">
-                                        <span className="material-symbols-outlined text-2xl">menu_book</span>
-                                    </div>
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-50 dark:bg-secondary/10 text-[10px] font-bold text-emerald-600 dark:text-secondary uppercase tracking-widest border border-emerald-100 dark:border-secondary/20 shadow-inner">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-secondary animate-pulse"></span>
-                                        {course.total_students} Ghi Danh
-                                    </span>
-                                </div>
-                                
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-primary transition-colors leading-tight">
-                                    {course.subject_name}
-                                </h3>
-                                
-                                <div className="flex items-center gap-3 mt-2 text-[11px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline">
-                                    <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-surface-container-highest border border-gray-200 dark:border-outline-variant/20 shadow-inner font-mono text-gray-600 dark:text-outline-variant">
-                                        {course.subject_id}
-                                    </span>
-                                    <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-outline-variant/50"></span>
-                                    <span>{course.credit} Tín Chỉ</span>
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-gray-100 dark:border-outline-variant/10 flex justify-between items-center">
-                                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-on-surface-variant group-hover:text-indigo-600 dark:group-hover:text-primary transition-colors">
-                                        Học Kỳ {course.semester}
-                                    </div>
-                                    <Link
-                                        href={route('teacher.enrollments.show', [course.subject_id, course.semester])}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white dark:bg-primary dark:text-on-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-indigo-500/20 dark:shadow-primary/20"
-                                    >
-                                        Chấm Nhập
-                                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </Link>
+                        <div key={index} className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 hover:border-primary/30 transition-all duration-300 group overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 focus-within:ring-2 focus-within:ring-primary relative">
+                            {/* Card Header Pattern */}
+                            <div className="h-24 bg-surface-container-low transition-colors relative overflow-hidden group-hover:bg-primary/5">
+                                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '16px 16px', color: 'var(--tw-colors-primary)' }}></div>
+                                <div className="absolute -bottom-6 left-6 w-14 h-14 bg-surface-container-lowest rounded-2xl flex items-center justify-center shadow-lg border border-outline-variant/10 z-10">
+                                    <span className="material-symbols-outlined text-primary text-2xl group-hover:scale-110 transition-transform">menu_book</span>
                                 </div>
                             </div>
                             
-                            {/* Decorative background element */}
-                            <div className="absolute -bottom-8 -right-8 opacity-5 dark:opacity-[0.03] scale-150 rotate-12 group-hover:opacity-10 dark:group-hover:opacity-[0.05] transition-opacity pointer-events-none">
-                                <span className="material-symbols-outlined text-[120px] text-indigo-600 dark:text-primary">auto_stories</span>
+                            <div className="p-6 pt-10 flex-1 flex flex-col relative z-20">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="text-lg font-bold text-on-surface leading-tight group-hover:text-primary transition-colors font-headline pr-8">
+                                        {course.subject_name}
+                                    </h3>
+                                    <span className="absolute top-10 right-6 text-on-surface-variant group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0">
+                                        <span className="material-symbols-outlined">arrow_outward</span>
+                                    </span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mb-6">
+                                    <span className="text-xs font-mono font-bold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-md">{course.subject_id}</span>
+                                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md uppercase tracking-wider">{course.credit} Tín chỉ</span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-outline-variant/10">
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest mb-1">Sĩ số</p>
+                                        <p className="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[16px] text-secondary">group</span> 
+                                            {course.total_students} Sinh viên
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest mb-1">Học kỳ</p>
+                                        <p className="text-sm font-bold text-on-surface">{course.semester}</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto">
+                                    <Link
+                                        href={route('teacher.enrollments.show', [course.subject_id, course.semester])}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-container-low text-on-surface hover:bg-primary hover:text-on-primary font-bold text-sm tracking-wide rounded-xl transition-all"
+                                    >
+                                        Quản lý Điểm
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-full py-24 glass-card bg-white dark:bg-transparent rounded-2xl border border-gray-200 dark:border-outline-variant/10 flex flex-col items-center justify-center text-center px-4 shadow-sm">
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-surface-container-highest rounded-full flex items-center justify-center mb-6 shadow-inner">
-                            <span className="material-symbols-outlined text-4xl text-gray-400 dark:text-outline-variant">event_busy</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Chưa Có Khóa Huấn Luyện Nào</h3>
-                        <p className="text-sm text-gray-500 dark:text-outline max-w-sm">Có vẻ như hệ thống chưa phân công bạn vào lịch giảng dạy cụ thể của học kỳ này. Vui lòng phản hồi Ban Quản Lý.</p>
+                    <div className="col-span-full py-20 text-center bg-surface-container-lowest rounded-3xl border border-outline-variant/10">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-50 mb-3 block">event_busy</span>
+                        <h3 className="text-lg font-bold text-on-surface mb-1">Chưa có Phân công</h3>
+                        <p className="text-sm text-on-surface-variant">Thầy/Cô chưa được phân công lớp nào trong học kỳ hiện tại.</p>
                     </div>
                 )}
             </div>
@@ -77,4 +119,4 @@ export default function Index({ courses }) {
     );
 }
 
-Index.layout = page => <AppLayout children={page} />;
+Index.layout = page => <TeacherLayout>{page}</TeacherLayout>;

@@ -1,9 +1,60 @@
 import React, { useState } from 'react';
-import AppLayout from '@/Layouts/AppLayout';
+import TeacherLayout from '@/Layouts/TeacherLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Show({ subject, semester, enrollments }) {
-    // Tính toán thống kê
+    const handleExportExcel = async () => {
+        if (!enrollments || enrollments.length === 0) return alert("Không có dữ liệu.");
+        const XLSX = await import('xlsx');
+        const exportData = enrollments.map((enr, i) => ({
+            "STT": i + 1,
+            "Mã Sinh Viên": enr.student?.student_code || '',
+            "Họ Tên": enr.student?.user?.name || '',
+            "Điểm Chuyên Cần (10%)": enr.score?.attendance_score || '',
+            "Điểm Giữa Kỳ (30%)": enr.score?.midterm_score || '',
+            "Điểm Cuối Kỳ (60%)": enr.score?.final_score || '',
+            "Điểm Tổng Kết": enr.score?.total_score || '',
+            "Xếp Loại": enr.score?.grade || ''
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BangDiem");
+        XLSX.writeFile(workbook, `Bang_Diem_${subject?.code || 'lop'}.xlsx`);
+    };
+
+    const handleExportPDF = async () => {
+        if (!enrollments || enrollments.length === 0) return alert("Không có dữ liệu.");
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+        const doc = new jsPDF();
+        
+        doc.text(`Bang Diem: ${subject?.name || ''}`, 14, 15);
+        doc.text(`Ma Hoc Phan: ${subject?.code || ''}`, 14, 22);
+
+        const tableColumn = ["STT", "Ma SV", "Ho Ten", "Chuyen Can", "Giua Ky", "Cuoi Ky", "Tong Ket"];
+        const tableRows = [];
+
+        enrollments.forEach((enr, i) => {
+            const data = [
+                i + 1,
+                enr.student?.student_code || '',
+                (enr.student?.user?.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'),
+                enr.score?.attendance_score || '-',
+                enr.score?.midterm_score || '-',
+                enr.score?.final_score || '-',
+                enr.score?.total_score || '-'
+            ];
+            tableRows.push(data);
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+        });
+        doc.save(`Bang_Diem_${subject?.code || 'lop'}.pdf`);
+    };
+
     const stats = React.useMemo(() => {
         if (!enrollments || enrollments.length === 0) return null;
         
@@ -29,91 +80,112 @@ export default function Show({ subject, semester, enrollments }) {
     }, [enrollments]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-12 max-w-7xl mx-auto">
-            <Head title={`Quản Lý Điểm - ${subject?.name}`} />
+        <div className="animate-fade-in space-y-8">
+            <Head title={`Điểm số - ${subject?.name}`} />
 
-            {/* Back Button & Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <Link
-                        href={route('teacher.enrollments.index')}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-outline hover:text-indigo-600 dark:hover:text-primary transition-colors mb-3"
-                    >
-                        <span className="material-symbols-outlined text-lg">arrow_back</span>
-                        Quay lại danh sách lớp dạy
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 dark:bg-primary flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-500/20">
-                            {subject?.name?.charAt(0) || 'S'}
+            {/* Header & Back Button */}
+            <div className="mb-8">
+                <Link
+                    href={route('teacher.enrollments.index')}
+                    className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors mb-6"
+                >
+                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                    Quay lại Danh sách lớp
+                </Link>
+                
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+                    <div className="flex items-start gap-5">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center text-on-primary text-3xl font-black shadow-[0_8px_16px_rgba(70,71,211,0.25)] flex-shrink-0">
+                            {subject?.name?.charAt(0) || 'C'}
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-gray-900 dark:text-white leading-none">
+                            <h2 className="text-3xl font-extrabold text-on-surface leading-tight font-headline tracking-tight">
                                 {subject?.name}
                             </h2>
-                            <div className="flex items-center gap-3 mt-2">
-                                <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-primary/10 border border-indigo-100 dark:border-primary/20 text-[10px] font-bold text-indigo-600 dark:text-primary tracking-widest uppercase font-mono">
+                            <div className="flex flex-wrap items-center gap-3 mt-3">
+                                <span className="px-3 py-1 rounded-lg bg-surface-container text-xs font-bold font-mono text-on-surface">
                                     {subject?.code}
                                 </span>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                                    Học Kỳ Khóa {semester}
+                                <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+                                    Học kỳ {semester}
                                 </span>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="flex gap-4">
-                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Sĩ Số</p>
-                        <p className="text-2xl font-black text-gray-900 dark:text-white">{stats?.total || 0}</p>
-                    </div>
-                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-b-emerald-500">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Tỷ Lệ Đạt</p>
-                        <p className="text-2xl font-black text-emerald-600 dark:text-secondary">{stats?.passRate || 0}%</p>
-                    </div>
-                    <div className="bg-white dark:bg-surface-container-low p-4 rounded-xl border border-gray-200 dark:border-outline-variant/10 shadow-sm min-w-[120px] text-center border-b-2 border-b-indigo-500">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline mb-1">Điểm TB</p>
-                        <p className="text-2xl font-black text-indigo-600 dark:text-primary">{stats?.avg || '0.00'}</p>
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-4">
+                        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm min-w-[110px]">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Sinh viên</p>
+                            <p className="text-2xl font-black text-on-surface">{stats?.total || 0}</p>
+                        </div>
+                        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm min-w-[110px] relative overflow-hidden">
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-secondary rounded-full"></div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Tỷ lệ Đạt</p>
+                            <p className="text-2xl font-black text-on-surface">{stats?.passRate || 0}%</p>
+                        </div>
+                        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm min-w-[110px] relative overflow-hidden">
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-full"></div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Điểm TB</p>
+                            <p className="text-2xl font-black text-primary">{stats?.avg || '0.00'}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="glass-card bg-white dark:bg-surface-container-low rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
-                <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-secondary animate-pulse"></span>
-                        <span className="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">Bảng Ghi Điểm Học Viên</span>
-                    </div>
-                    <p className="text-[10px] font-bold text-gray-500 dark:text-outline">Đã nhập: {stats?.entriesWithScore || 0}/{stats?.total || 0}</p>
+            {/* Action Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 border-b border-outline-variant/10">
+                <div className="flex items-center gap-3">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+                    </span>
+                    <span className="text-sm font-bold text-on-surface">Chấm điểm Trực tiếp</span>
+                    <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full ml-2">
+                        Đã chấm {stats?.entriesWithScore || 0}/{stats?.total || 0}
+                    </span>
                 </div>
                 
+                <div className="flex gap-3">
+                    <div className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+                        <input type="text" placeholder="Tìm kiếm sinh viên..." className="w-64 bg-surface-container-lowest border border-outline-variant/20 rounded-lg py-2 pl-9 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface placeholder:text-on-surface-variant/50" />
+                    </div>
+                    <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 hover:bg-surface-container text-on-surface rounded-lg text-sm font-bold transition-all shadow-sm">
+                        <span className="material-symbols-outlined text-[18px]">table_view</span> CSV
+                    </button>
+                    <button onClick={handleExportPDF} className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 hover:bg-surface-container text-on-surface rounded-lg text-sm font-bold transition-all shadow-sm">
+                        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span> PDF
+                    </button>
+                </div>
+            </div>
+
+            {/* Grades Table */}
+            <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left whitespace-nowrap">
+                    <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-gray-50 dark:bg-surface-container-low/50 border-b border-gray-200 dark:border-outline-variant/10">
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline w-16 text-center">STT</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline w-64">Hồ Sơ Căn Bản</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Điểm Tiếp Xúc</th>
-                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5 border-x border-indigo-100 dark:border-primary/10">Chuyên Cần (10%)</th>
-                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5">Giữa Kỳ (30%)</th>
-                                <th className="px-4 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-black text-indigo-700 bg-indigo-50 dark:text-primary dark:bg-primary/5 border-l border-indigo-100 dark:border-primary/10">Cuối Bài (60%)</th>
-                                <th className="px-6 py-4 text-center font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Ghi Xét Lệnh</th>
+                            <tr className="bg-surface-container-low border-b border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                                <th className="px-6 py-4 w-16 text-center">STT</th>
+                                <th className="px-6 py-4">Sinh viên</th>
+                                <th className="px-4 py-4 text-center border-x border-outline-variant/5">Chuyên cần (10%)</th>
+                                <th className="px-4 py-4 text-center border-r border-outline-variant/5">Giữa kỳ (30%)</th>
+                                <th className="px-4 py-4 text-center border-r border-outline-variant/5">Cuối kỳ (60%)</th>
+                                <th className="px-6 py-4 text-center">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-outline-variant/5">
+                        <tbody className="divide-y divide-outline-variant/5">
                             {enrollments && enrollments.length > 0 ? (
                                 enrollments.map((enrollment, index) => (
                                     <ScoreRow key={enrollment.id} enrollment={enrollment} index={index} />
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-24 text-center text-gray-500 dark:text-outline">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-surface-container-highest mb-4">
-                                            <span className="material-symbols-outlined text-3xl text-gray-400 dark:text-outline-variant">person_off</span>
-                                        </div>
-                                        <p className="text-sm font-bold text-gray-900 dark:text-on-surface">Không Phát Hiện Hồ Sơ Tồn Tại</p>
-                                        <p className="text-xs mt-1">Sĩ số rỗng. Có vẻ chưa học thuyết nào gửi người tham khảo vào khóa.</p>
+                                    <td colSpan="6" className="px-6 py-24 text-center">
+                                        <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-50 mb-3 block">search_off</span>
+                                        <h3 className="text-sm font-bold text-on-surface">Chưa có Sinh viên</h3>
+                                        <p className="text-xs text-on-surface-variant mt-1">Vui lòng chờ sinh viên đăng ký học phần này.</p>
                                     </td>
                                 </tr>
                             )}
@@ -143,66 +215,63 @@ function ScoreRow({ enrollment, index }) {
     };
 
     return (
-        <tr className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
-            <td className="px-6 py-4 text-center text-xs font-bold text-gray-400 dark:text-outline-variant">
+        <tr className="hover:bg-surface-container-high/30 transition-colors group">
+            <td className="px-6 py-4 text-center text-xs font-bold text-on-surface-variant">
                 {index + 1}
             </td>
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded border border-gray-200 dark:border-outline-variant/20 bg-gray-100 dark:bg-surface-container-highest flex items-center justify-center text-gray-900 dark:text-on-surface font-bold text-xs uppercase shadow-inner">
+                    <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface font-bold text-sm shadow-inner shadow-black/5">
                         {enrollment.student?.user?.name ? enrollment.student.user.name.charAt(0) : 'S'}
                     </div>
                     <div>
-                        <div className="font-bold text-gray-900 dark:text-white text-sm tracking-wide">{enrollment.student?.user?.name || 'Vô Danh'}</div>
-                        <div className="text-[10px] font-mono font-bold text-gray-500 dark:text-outline mt-0.5 uppercase">{enrollment.student?.student_code}</div>
+                        <div className="font-bold text-on-surface text-sm">{enrollment.student?.user?.name || 'Không rõ'}</div>
+                        <div className="text-[10px] font-mono font-bold text-on-surface-variant mt-0.5">{enrollment.student?.student_code}</div>
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-on-surface-variant">
-                {enrollment.student?.user?.email}
-            </td>
             
-            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 border-l border-indigo-100 dark:border-primary/10 transition-colors">
+            <td className="px-4 py-4 text-center bg-primary/5 border-l border-outline-variant/5">
                 {isEditing ? (
                     <input 
                         type="number" step="0.1" min="0" max="10"
                         value={data.attendance_score}
                         onChange={e => setData('attendance_score', e.target.value)}
-                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
                     />
                 ) : (
-                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
-                        {data.attendance_score !== '' ? data.attendance_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    <span className="font-mono text-on-surface font-bold text-sm">
+                        {data.attendance_score !== '' ? data.attendance_score : <span className="text-on-surface-variant opacity-50">-</span>}
                     </span>
                 )}
             </td>
             
-            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 transition-colors">
+            <td className="px-4 py-4 text-center bg-primary/5 border-l border-outline-variant/5">
                 {isEditing ? (
                     <input 
                         type="number" step="0.1" min="0" max="10"
                         value={data.midterm_score}
                         onChange={e => setData('midterm_score', e.target.value)}
-                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
                     />
                 ) : (
-                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
-                        {data.midterm_score !== '' ? data.midterm_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    <span className="font-mono text-on-surface font-bold text-sm">
+                        {data.midterm_score !== '' ? data.midterm_score : <span className="text-on-surface-variant opacity-50">-</span>}
                     </span>
                 )}
             </td>
             
-            <td className="px-4 py-4 text-center bg-indigo-50/50 dark:bg-primary/5 border-r border-indigo-100 dark:border-primary/10 transition-colors">
+            <td className="px-4 py-4 text-center bg-primary/5 border-x border-outline-variant/5">
                 {isEditing ? (
                     <input 
                         type="number" step="0.1" min="0" max="10"
                         value={data.final_score}
                         onChange={e => setData('final_score', e.target.value)}
-                        className="w-16 px-1 py-1 text-center text-sm font-mono border-none rounded bg-white dark:bg-surface-container-highest focus:ring-1 focus:ring-indigo-600 dark:focus:ring-primary text-gray-900 dark:text-white outline-none shadow-inner border-[1px] border-indigo-100 dark:border-none"
+                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
                     />
                 ) : (
-                    <span className="font-mono text-gray-900 dark:text-white font-bold text-sm">
-                        {data.final_score !== '' ? data.final_score : <span className="text-gray-400 dark:text-outline-variant">-</span>}
+                    <span className="font-mono text-on-surface font-bold text-sm">
+                        {data.final_score !== '' ? data.final_score : <span className="text-on-surface-variant opacity-50">-</span>}
                     </span>
                 )}
             </td>
@@ -213,26 +282,26 @@ function ScoreRow({ enrollment, index }) {
                         <button 
                             onClick={handleSave} 
                             disabled={processing}
-                            className="p-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white dark:text-secondary dark:bg-secondary/10 dark:hover:bg-secondary dark:hover:text-[#002113] border border-emerald-100 dark:border-secondary/20 rounded-md transition-all shadow-md shadow-emerald-500/10 dark:shadow-secondary/10"
-                            title="Lưu Thành Quả"
+                            className="p-1.5 text-white bg-primary hover:bg-primary-dim rounded-md transition-all shadow-sm shadow-primary/20"
+                            title="Lưu điểm"
                         >
-                            <span className="material-symbols-outlined text-lg">check</span>
+                            <span className="material-symbols-outlined text-[18px]">check</span>
                         </button>
                         <button 
                             onClick={() => setIsEditing(false)} 
-                            className="p-1.5 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 dark:text-outline dark:hover:text-white dark:bg-surface-container-highest dark:hover:bg-outline-variant/30 rounded-md transition-all border border-gray-200 dark:border-outline-variant/20"
-                            title="Xóa Thao Tác Chặn"
+                            className="p-1.5 text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-md transition-all"
+                            title="Hủy"
                         >
-                            <span className="material-symbols-outlined text-lg">close</span>
+                            <span className="material-symbols-outlined text-[18px]">close</span>
                         </button>
                     </div>
                 ) : (
                     <button 
                         onClick={() => setIsEditing(true)}
-                        className="mx-auto flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-600 hover:text-white dark:text-primary dark:bg-primary/10 dark:border-primary/20 dark:hover:bg-primary dark:hover:text-on-primary rounded transition-all opacity-50 sm:opacity-0 group-hover:opacity-100 shadow-sm"
+                        className="mx-auto flex items-center justify-center w-8 h-8 text-primary bg-primary/10 hover:bg-primary hover:text-on-primary rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="Sửa điểm"
                     >
-                        <span className="material-symbols-outlined text-[14px]">edit_note</span>
-                        Thao Tác Điểm
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
                 )}
             </td>
@@ -240,4 +309,4 @@ function ScoreRow({ enrollment, index }) {
     );
 }
 
-Show.layout = page => <AppLayout children={page} />;
+Show.layout = page => <TeacherLayout>{page}</TeacherLayout>;

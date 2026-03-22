@@ -79,7 +79,7 @@ function Sidebar({ role }) {
             <nav className="flex-1 px-4 py-4 space-y-2">
                 <div className="px-4 mb-3 font-['Inter'] uppercase tracking-widest text-[0.625rem] font-bold text-gray-400 dark:text-outline">Cấu trúc Điều hướng</div>
                 {nav.map(item => {
-                    const isActive = url.startsWith(item.href);
+                    const isActive = url?.startsWith(item.href);
                     return (
                         <Link
                             key={item.href}

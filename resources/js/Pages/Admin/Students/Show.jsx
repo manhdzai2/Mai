@@ -1,10 +1,66 @@
 import React from 'react';
-import AppLayout from '@/Layouts/AppLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Show({ student }) {
     const user = student?.user;
     const enrollments = student?.enrollments || [];
+
+    const handleExportExcel = async () => {
+        if (!enrollments || enrollments.length === 0) return alert("Không có dữ liệu.");
+        const XLSX = await import('xlsx');
+        const exportData = enrollments.map((enr, i) => ({
+            "STT": i + 1,
+            "Mã Học Phần": enr.subject?.code || '',
+            "Tên Học Phần": enr.subject?.name || '',
+            "Số Tín Chỉ": enr.subject?.credits || enr.subject?.credit || '',
+            "Giảng Viên": enr.teacher?.user?.name || '',
+            "Chuyên Cần": enr.score?.attendance_score ?? '-',
+            "Giữa Kỳ": enr.score?.midterm_score ?? '-',
+            "Cuối Kỳ": enr.score?.final_score ?? '-',
+            "Tổng Kết": enr.score?.total_score ?? '-',
+            "Xếp Loại": enr.score?.grade || 'Chờ'
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BangDiem");
+        XLSX.writeFile(workbook, `Bang_Diem_${student.student_code}.xlsx`);
+    };
+
+    const handleExportPDF = async () => {
+        if (!enrollments || enrollments.length === 0) return alert("Không có dữ liệu.");
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+        const doc = new jsPDF();
+        
+        doc.text(`Bang Diem Sinh Vien: ${(student?.user?.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')}`, 14, 15);
+        doc.text(`Ma Sinh Vien: ${student?.student_code || ''}`, 14, 22);
+
+        const tableColumn = ["STT", "Ma HP", "Ten Mon", "GV", "CC", "GK", "CK", "Tong Ket", "Xep Loai"];
+        const tableRows = [];
+
+        enrollments.forEach((enr, i) => {
+            const data = [
+                i + 1,
+                enr.subject?.code || '',
+                (enr.subject?.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'),
+                (enr.teacher?.user?.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'),
+                enr.score?.attendance_score ?? '-',
+                enr.score?.midterm_score ?? '-',
+                enr.score?.final_score ?? '-',
+                enr.score?.total_score ?? '-',
+                (enr.score?.grade || 'Cho').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+            ];
+            tableRows.push(data);
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+        });
+        doc.save(`Bang_Diem_${student.student_code}.pdf`);
+    };
 
     return (
         <div className="space-y-8 animate-fade-in-up pb-12 max-w-6xl mx-auto">
@@ -83,6 +139,21 @@ export default function Show({ student }) {
                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline">{enrollments.length} học phần đăng ký</p>
                         </div>
                     </div>
+                    
+                    <div className="flex gap-2 relative z-10">
+                        <button 
+                            onClick={handleExportExcel}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-secondary/10 dark:hover:bg-secondary/20 dark:text-secondary rounded-lg text-xs font-bold transition-colors border border-emerald-200 dark:border-secondary/20 shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">table_chart</span> Excel
+                        </button>
+                        <button 
+                            onClick={handleExportPDF}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-tertiary/10 dark:hover:bg-tertiary/20 dark:text-tertiary rounded-lg text-xs font-bold transition-colors border border-rose-200 dark:border-tertiary/20 shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span> PDF
+                        </button>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -136,4 +207,4 @@ export default function Show({ student }) {
     );
 }
 
-Show.layout = page => <AppLayout children={page} />;
+Show.layout = page => <AdminLayout>{page}</AdminLayout>;

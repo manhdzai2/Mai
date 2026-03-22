@@ -62,4 +62,16 @@ class ProfileController extends Controller
             'schedules' => $schedules
         ]);
     }
+
+    public function support(): Response
+    {
+        $student = Auth::user()->student()->with('user')->first();
+
+        // Bảo vệ code không bị crash nếu $student là null
+        abort_if(!$student, 403, 'Không tìm thấy hồ sơ sinh viên hợp lệ.');
+
+        return Inertia::render('Student/Support', [
+            'studentInfo' => $student
+        ]);
+    }
 }

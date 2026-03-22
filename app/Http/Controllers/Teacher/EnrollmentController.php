@@ -73,6 +73,21 @@ class EnrollmentController extends Controller
             'final_score' => 'nullable|numeric|min:0|max:10',
         ]);
 
+        // Tính điểm tổng (Total Score) và Xếp loại chữ (Grade)
+        $totalScore = null;
+        $grade = null;
+
+        if (isset($validated['attendance_score']) && isset($validated['midterm_score']) && isset($validated['final_score'])) {
+            $total = ($validated['attendance_score'] * 0.1) + ($validated['midterm_score'] * 0.3) + ($validated['final_score'] * 0.6);
+            $totalScore = round($total, 1);
+            
+            if ($totalScore >= 8.5) $grade = 'A';
+            elseif ($totalScore >= 7.0) $grade = 'B';
+            elseif ($totalScore >= 5.5) $grade = 'C';
+            elseif ($totalScore >= 4.0) $grade = 'D';
+            else $grade = 'F';
+        }
+
         // 2. Lưu vào Database (Nếu có rồi thì update, chưa có thì tạo mới)
         Score::updateOrCreate(
             ['enrollment_id' => $validated['enrollment_id']],
@@ -80,6 +95,8 @@ class EnrollmentController extends Controller
                 'attendance_score' => $validated['attendance_score'],
                 'midterm_score' => $validated['midterm_score'],
                 'final_score' => $validated['final_score'],
+                'total_score' => $totalScore,
+                'grade' => $grade,
             ]
         );
 

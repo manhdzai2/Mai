@@ -196,9 +196,9 @@ export default function Login({ status, canResetPassword }) {
                     <div className="mt-8 pt-6 border-t border-gray-100 dark:border-[#c7c4d8]/10 text-center">
                         <p className="text-xs font-bold text-gray-500 dark:text-outline uppercase tracking-widest mb-3">Thông tin truy cập (Demo)</p>
                         <div className="flex justify-center gap-2 flex-wrap">
-                            <span className="px-2 py-1 bg-gray-100 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[10px] font-bold rounded-md">Admin</span>
-                            <span className="px-2 py-1 bg-gray-100 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[10px] font-bold rounded-md">Giảng Viên</span>
-                            <span className="px-2 py-1 bg-gray-100 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[10px] font-bold rounded-md">Sinh Viên</span>
+                            <button type="button" onClick={() => { setData('email', 'admin@fbu.edu.vn'); setData('password', 'password'); }} className="px-3 py-1.5 bg-gray-100 hover:bg-indigo-100 dark:hover:bg-primary/20 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[11px] font-bold rounded-lg cursor-pointer transition-colors active:scale-95 shadow-sm">Admin</button>
+                            <button type="button" onClick={() => { setData('email', 'huong.tt@fbu.edu.vn'); setData('password', 'password'); }} className="px-3 py-1.5 bg-gray-100 hover:bg-indigo-100 dark:hover:bg-primary/20 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[11px] font-bold rounded-lg cursor-pointer transition-colors active:scale-95 shadow-sm">Giảng Viên</button>
+                            <button type="button" onClick={() => { setData('email', 'student@fbu.edu.vn'); setData('password', 'password'); }} className="px-3 py-1.5 bg-gray-100 hover:bg-indigo-100 dark:hover:bg-primary/20 dark:bg-[#31394d] text-gray-600 dark:text-outline text-[11px] font-bold rounded-lg cursor-pointer transition-colors active:scale-95 shadow-sm">Sinh Viên</button>
                         </div>
                     </div>
                 </div>

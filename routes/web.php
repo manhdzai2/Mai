@@ -92,6 +92,9 @@ Route::middleware(['auth'])->prefix('student')->name('student.')->group(function
     // Trang lịch học (Bỏ chữ student ở đây vì đã có prefix ở trên)
     // Đường dẫn thực tế sẽ là: 127.0.0.1:8000/student/schedule
     Route::get('/schedule', [StudentProfileController::class, 'schedule'])->name('schedule');
+    
+    // Trang Hỗ trợ sinh viên AI
+    Route::get('/support', [StudentProfileController::class, 'support'])->name('support');
 });
 
 // 7. CÁC ROUTE AUTH (Breeze)

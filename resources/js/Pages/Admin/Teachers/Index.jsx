@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import AppLayout from '@/Layouts/AppLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { debounce } from 'lodash';
+import { motion } from 'framer-motion';
 
 export default function Index({ teachers, filters }) {
     const searchRef = useRef(
@@ -18,204 +19,124 @@ export default function Index({ teachers, filters }) {
         return () => searchRef.cancel();
     }, [searchRef]);
 
-    const totalTeachers = teachers.total || teachers.data?.length || 0;
+    const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } };
+    const itemVariants = { hidden: { opacity: 0, scale: 0.95, y: 10 }, visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3 } } };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-12">
-            <Head title="Danh Bạ Giáo Viên" />
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 pb-12">
+            <Head title="Hồ sơ Giảng viên" />
 
-            {/* Page Header is handled by Layout Topbar mostly, but we add page context here */}
-            <div className="flex justify-between items-end mb-2">
+            {/* Page Header */}
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <div>
-                    <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-indigo-600 dark:text-primary mb-1 block">Quản lý Nhân Sự</span>
-                    <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Danh bạ Giảng Viên</h2>
+                    <h2 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Đội Ngũ Giảng Viên</h2>
+                    <p className="text-on-surface-variant mt-1">Quản lý hồ sơ công tác, thông tin liên hệ và phân quyền của cán bộ đào tạo.</p>
                 </div>
-            </div>
-
-            {/* Bento Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-card bg-white dark:bg-transparent p-6 rounded-xl flex items-center justify-between group hover:bg-gray-50 dark:hover:bg-surface-container-highest/60 transition-all border border-gray-200 dark:border-outline-variant/10 shadow-sm">
-                    <div>
-                        <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline mb-1">Tổng Số Giảng Viên</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white">{totalTeachers}</h3>
-                        <p className="text-xs text-emerald-600 dark:text-secondary mt-2 flex items-center gap-1 font-bold">
-                            <span className="material-symbols-outlined text-xs">trending_up</span>
-                            +12% so với năm ngoái
-                        </p>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-primary-container/20 flex items-center justify-center text-indigo-600 dark:text-primary-fixed-dim shadow-[0_0_15px_rgba(195,192,255,0.15)]">
-                        <span className="material-symbols-outlined text-3xl">groups</span>
-                    </div>
-                </div>
-
-                <div className="glass-card bg-white dark:bg-transparent p-6 rounded-xl flex items-center justify-between group hover:bg-gray-50 dark:hover:bg-surface-container-highest/60 transition-all border border-gray-200 dark:border-outline-variant/10 shadow-sm">
-                    <div>
-                        <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline mb-1">Công Trình Nghiên Cứu</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white">1.4k</h3>
-                        <p className="text-xs text-emerald-600 dark:text-secondary mt-2 flex items-center gap-1 font-bold">
-                            <span className="material-symbols-outlined text-xs">check_circle</span>
-                            94 bài xuất bản tháng này
-                        </p>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-secondary/10 flex items-center justify-center text-emerald-600 dark:text-secondary shadow-[0_0_15px_rgba(78,222,163,0.15)]">
-                        <span className="material-symbols-outlined text-3xl">biotech</span>
-                    </div>
-                </div>
-
-                <div className="glass-card bg-white dark:bg-transparent p-6 rounded-xl flex items-center justify-between group hover:bg-gray-50 dark:hover:bg-surface-container-highest/60 transition-all border border-gray-200 dark:border-outline-variant/10 shadow-sm">
-                    <div>
-                        <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline mb-1">Khoa Tập Trung Hoạt Động</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white">24</h3>
-                        <p className="text-xs text-gray-500 dark:text-outline mt-2 font-bold">Trải dài trên 4 cơ sở đại học</p>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-tertiary/10 flex items-center justify-center text-rose-500 dark:text-tertiary shadow-[0_0_15px_rgba(255,178,183,0.15)]">
-                        <span className="material-symbols-outlined text-3xl">account_tree</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Directory Section Table */}
-            <div className="glass-card bg-white dark:bg-transparent rounded-xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
-                {/* Table Header/Filters */}
-                <div className="p-6 flex flex-col lg:flex-row justify-between items-center gap-4 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30">
-                    <div className="flex items-center gap-4 w-full lg:w-auto">
-                        <div className="relative w-full lg:w-80 group">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-outline text-sm group-focus-within:text-indigo-600 dark:group-focus-within:text-primary transition-colors">search</span>
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo Tên, SDT hoặc Email..."
-                                defaultValue={filters?.search || ''}
-                                onChange={(e) => searchRef(e.target.value)}
-                                className="bg-gray-100/50 dark:bg-surface-container-highest/50 text-sm rounded-xl border-none pl-10 pr-4 py-2.5 w-full text-gray-900 dark:text-on-surface focus:ring-1 focus:ring-indigo-500 dark:focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-outline/50 transition-all outline-none"
-                            />
-                        </div>
-                        <div className="hidden lg:flex items-center gap-2 px-4">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-secondary animate-pulse"></span>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline">Đang kết nối</span>
-                        </div>
-                    </div>
-                    
-                    <Link
-                        href={route('admin.teachers.create')}
-                        className="w-full lg:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-gradient-to-r dark:from-primary dark:to-primary-container text-white dark:text-[#002113] px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-indigo-500/20 dark:shadow-primary/20"
-                    >
-                        <span className="material-symbols-outlined text-lg">person_add</span>
-                        Thêm Giảng Viên
+                <div className="flex items-center gap-3">
+                    <Link href={route('admin.teachers.create')} className="px-5 py-2.5 bg-primary text-on-primary font-bold text-sm rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-[0_4px_12px_rgba(70,71,211,0.25)] hover:shadow-primary/40">
+                        <span className="material-symbols-outlined text-[18px]">person_add</span> Thêm Mới
                     </Link>
                 </div>
+            </motion.div>
 
-                {/* Premium High-Density Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-gray-50 dark:bg-surface-container-low/50 border-b border-gray-200 dark:border-outline-variant/10">
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Cấu hình Giảng Viên</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Liên Lạc</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Bộ môn Trực Thuộc</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Trạng thái Làm việc</th>
-                                <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-right">Thao Tác Hệ Thống</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-outline-variant/5">
-                            {teachers.data && teachers.data.length > 0 ? (
-                                teachers.data.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-surface-container-highest border border-gray-200 dark:border-outline-variant/20 flex items-center justify-center text-indigo-600 dark:text-primary font-bold shadow-inner">
-                                                    {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'T'}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-primary transition-colors">{item.user?.name}</p>
-                                                    <span className="inline-block px-2 py-0.5 rounded bg-indigo-50 dark:bg-primary-container/20 text-[9px] font-bold text-indigo-600 dark:text-primary tracking-wider uppercase mt-1">
-                                                        MÃ GV: {item.id}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        
-                                        <td className="px-6 py-5">
-                                            <div className="text-sm text-gray-600 dark:text-on-surface-variant font-medium">{item.phone || 'Chưa cung cấp'}</div>
-                                            <div className="text-[11px] text-gray-500 dark:text-outline mt-0.5">{item.user?.email || 'Chưa cung cấp'}</div>
-                                        </td>
-                                        
-                                        <td className="px-6 py-5">
-                                            <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                                                {/* Mock subjects since backend may not give them eagerly */}
-                                                <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-surface-container-highest text-[10px] text-gray-600 dark:text-outline font-medium tracking-wide">Khoa Tự Động Hóa & Hệ Thống</span>
-                                            </div>
-                                        </td>
-                                        
-                                        <td className="px-6 py-5">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-secondary/10 text-emerald-600 dark:text-secondary text-[10px] font-bold tracking-wider uppercase">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-secondary"></span>
-                                                ĐANG HOẠT ĐỘNG
-                                            </span>
-                                        </td>
-                                        
-                                        <td className="px-6 py-5 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                <Link
-                                                    href={route('admin.teachers.show', item.id)}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-outline hover:text-emerald-600 dark:hover:text-secondary hover:bg-emerald-50 dark:hover:bg-secondary/10 transition-all"
-                                                    title="Xem chi tiết"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">visibility</span>
-                                                </Link>
-                                                <Link
-                                                    href={route('admin.teachers.edit', item.id)}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-outline hover:text-indigo-600 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-surface-container-highest transition-all"
-                                                    title="Sửa Hồ Sơ"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">edit</span>
-                                                </Link>
-                                                <button
-                                                    onClick={() => confirm(`Xóa giảng viên "${item.user?.name}"?`) && router.delete(route('admin.teachers.destroy', item.id))}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-outline hover:text-rose-600 hover:bg-rose-50 dark:hover:text-tertiary dark:hover:bg-tertiary/10 transition-all"
-                                                    title="Xóa"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-16 text-center text-gray-500 dark:text-outline">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-surface-container-highest mb-4">
-                                            <span className="material-symbols-outlined text-3xl text-gray-400 dark:text-outline-variant">person_off</span>
-                                        </div>
-                                        <p className="text-sm font-bold text-gray-900 dark:text-on-surface">Cấu Hình Không Hợp Lệ</p>
-                                        <p className="text-xs mt-1">Chưa có thông tin nhân sự nào được đi qua điểm này. Vui lòng bổ xung.</p>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+            {/* Filters & Search */}
+            <motion.div variants={itemVariants} className="bg-surface-container-lowest p-2 rounded-2xl shadow-sm border border-outline-variant/5 flex flex-col lg:flex-row gap-2">
+                <div className="flex-1 relative">
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input 
+                        type="text" 
+                        defaultValue={filters?.search || ''}
+                        onChange={(e) => searchRef(e.target.value)}
+                        placeholder="Tìm kiếm theo tên hoặc email giảng viên..." 
+                        className="w-full bg-transparent border-none py-3 pl-12 pr-4 text-sm focus:ring-0 outline-none placeholder:text-on-surface-variant/50 text-on-surface font-medium"
+                    />
                 </div>
+                <div className="hidden lg:block w-px bg-outline-variant/20 my-2 mx-1"></div>
+                <div className="flex gap-2">
+                    <select className="bg-surface-container-low border-none rounded-xl text-sm font-bold py-3 pl-4 pr-10 focus:ring-2 focus:ring-primary/20 text-on-surface outline-none cursor-pointer">
+                        <option>Tất cả Bộ môn</option>
+                        <option>Khoa Cơ Bản</option>
+                        <option>Khoa Kinh Tế</option>
+                    </select>
+                </div>
+            </motion.div>
 
-                <Pagination links={teachers.links} />
-            </div>
-        </div>
+            {/* Teachers Grid */}
+            <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {teachers.data && teachers.data.length > 0 ? (
+                    teachers.data.map(teacher => {
+                        const nameChar = teacher.user?.name ? teacher.user.name.charAt(0) : 'T';
+                        return (
+                            <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }} key={teacher.id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/5 hover:border-tertiary/30 transition-colors group cursor-pointer relative overflow-hidden flex flex-col h-full">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                                
+                                <div className="flex justify-between items-start mb-4 relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-tertiary to-[#bf0f3c] text-white font-bold flex items-center justify-center text-lg shadow-md">
+                                            {nameChar}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-on-surface leading-tight group-hover:text-tertiary transition-colors">{teacher.user?.name}</h3>
+                                            <p className="text-xs text-on-surface-variant font-mono mt-0.5">Giảng viên cơ hữu</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 mb-6 relative z-10">
+                                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                                        <span className="material-symbols-outlined text-[16px]">mail</span>
+                                        <span className="truncate">{teacher.user?.email || 'Chưa cập nhật'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                                        <span className="material-symbols-outlined text-[16px]">call</span>
+                                        <span className="truncate font-mono">{teacher.phone || 'Chưa cập nhật'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-4 border-t border-outline-variant/10 mt-auto relative z-10">
+                                    <Link href={route('admin.teachers.show', teacher.id)} className="flex-[2] bg-surface-container text-on-surface hover:bg-surface-container-high py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                                        <span className="material-symbols-outlined text-[16px]">person</span>
+                                    </Link>
+                                    <Link href={route('admin.teachers.edit', teacher.id)} className="flex-[2] bg-tertiary/10 text-tertiary hover:bg-tertiary/20 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                                        <span className="material-symbols-outlined text-[16px]">edit</span> Sửa
+                                    </Link>
+                                    <button onClick={(e) => { e.preventDefault(); confirm(`Chắc chắn xóa ${teacher.user?.name}?`) && router.delete(route('admin.teachers.destroy', teacher.id)); }} className="flex-[1] bg-error/10 text-error hover:bg-error/20 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        );
+                    })
+                ) : (
+                    <motion.div variants={itemVariants} className="col-span-full py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/5">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-50 mb-3 block">person_off</span>
+                        <h3 className="text-lg font-bold text-on-surface">Không tìm thấy giảng viên</h3>
+                        <p className="text-sm text-on-surface-variant mt-1">Hãy thay đổi từ khóa tìm kiếm hoặc thêm giảng viên mới.</p>
+                    </motion.div>
+                )}
+            </motion.div>
+
+            {/* Pagination Component */}
+            <Pagination links={teachers.links} />
+
+        </motion.div>
     );
 }
 
-Index.layout = page => <AppLayout children={page} />;
+Index.layout = page => <AdminLayout>{page}</AdminLayout>;
 
 function Pagination({ links }) {
     if (!links || links.length <= 3) return null;
 
     return (
-        <div className="p-6 bg-gray-50/50 dark:bg-surface-container-low/50 flex flex-wrap justify-center sm:justify-between items-center border-t border-gray-200 dark:border-outline-variant/10 gap-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-outline">Phân Trang Cơ Sở Dữ Liệu</p>
-            <div className="flex items-center gap-2">
+        <div className="flex justify-center mt-8">
+            <div className="inline-flex bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/5 p-1">
                 {links.map((link, index) => {
-                    const label = link.label.replace('&laquo;', 'Trước').replace('&raquo;', 'Tiếp');
+                    const label = link.label.replace('&laquo;', '').replace('&raquo;', '').trim() || (link.label.includes('laquo') ? 'Trước' : 'Sau');
                     
                     if (!link.url) {
                         return (
-                            <span key={index} className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-gray-400 dark:text-outline-variant bg-transparent cursor-not-allowed">
+                            <span key={index} className="px-4 py-2 text-sm font-bold text-on-surface-variant/50 cursor-not-allowed">
                                 {label}
                             </span>
                         );
@@ -225,10 +146,10 @@ function Pagination({ links }) {
                         <Link
                             key={index}
                             href={link.url}
-                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
                                 link.active 
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20 dark:bg-primary dark:text-on-primary dark:shadow-primary/20' 
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-outline dark:hover:text-white dark:hover:bg-surface-container-highest'
+                                    ? 'bg-primary text-on-primary' 
+                                    : 'text-on-surface hover:bg-surface-container'
                             }`}
                         >
                             {label}
