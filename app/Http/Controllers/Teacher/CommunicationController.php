@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\LeaveRequest;
 use App\Models\Enrollment;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -113,6 +114,26 @@ class CommunicationController extends Controller
             'status' => $validated['status'],
             'teacher_note' => $validated['teacher_note'] ?? null,
         ]);
+
+        // PHỤC HỒI ĐIỂM DANH (Nếu được phê duyệt)
+        if ($validated['status'] === 'approved') {
+            $enrollment = Enrollment::where('student_id', $leaveRequest->student_id)
+                ->where('subject_id', $leaveRequest->subject_id)
+                ->first();
+
+            if ($enrollment) {
+                Attendance::updateOrCreate(
+                    [
+                        'enrollment_id' => $enrollment->id,
+                        'date'          => $leaveRequest->leave_date->format('Y-m-d'),
+                    ],
+                    [
+                        'status' => 'absent_excused',
+                        'note'   => "Đã phục hồi từ đơn xin nghỉ (ID: {$leaveRequest->id})"
+                    ]
+                );
+            }
+        }
 
         $statusText = $validated['status'] === 'approved' ? 'phê duyệt' : 'từ chối';
         return back()->with('success', "Đã {$statusText} đơn xin nghỉ!");

@@ -251,16 +251,8 @@ class DatabaseSeeder extends Seeder
                     'teacher_id' => $teacherModels[$teacherIdx]->id,
                 ]);
 
-                // Tạo điểm ngẫu nhiên hợp lý (5 đầu điểm)
-                $attendance = round(mt_rand(60, 100) / 10, 1);   // 6.0 - 10.0
-                $regular = round(mt_rand(50, 95) / 10, 1);       // 5.0 - 9.5
-                $test = round(mt_rand(40, 95) / 10, 1);          // 4.0 - 9.5
-                $midterm = round(mt_rand(40, 95) / 10, 1);       // 4.0 - 9.5
-                $final = round(mt_rand(35, 98) / 10, 1);         // 3.5 - 9.8
-
-                // Công thức: CC(10%) + TX(10%) + KT(10%) + GK(20%) + CK(50%)
-                $total = round($attendance * 0.1 + $regular * 0.1 + $test * 0.1 + $midterm * 0.2 + $final * 0.5, 2);
-                $grade = $total >= 8.5 ? 'Giỏi' : ($total >= 7.0 ? 'Khá' : ($total >= 5.0 ? 'Trung bình' : 'Yếu'));
+                $regular = round(mt_rand(50, 95) / 10, 1);
+                $test = round(mt_rand(40, 95) / 10, 1);
 
                 Score::create([
                     'enrollment_id' => $enrollment->id,
@@ -269,8 +261,6 @@ class DatabaseSeeder extends Seeder
                     'test_score' => $test,
                     'midterm_score' => $midterm,
                     'final_score' => $final,
-                    'total_score' => $total,
-                    'grade' => $grade,
                 ]);
             }
         }

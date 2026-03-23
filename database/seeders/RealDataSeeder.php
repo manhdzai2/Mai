@@ -11,6 +11,8 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\Enrollment;
 use App\Models\Score;
+use App\Models\Attendance;
+use App\Models\TuitionFee;
 use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 
@@ -35,21 +37,20 @@ class RealDataSeeder extends Seeder
         $firstNamesFemale = ['Anh', 'Bích', 'Chi', 'Diệp', 'Đào', 'Hà', 'Hoa', 'Hương', 'Lan', 'Linh', 'Mai', 'Ngọc', 'Nhi', 'Oanh', 'Phương', 'Quỳnh', 'Thảo', 'Trang', 'Vân', 'Yến'];
 
         $countCreated = 0;
-        $studentCodeIndex = 100; // Bắt đầu từ 100 để tránh trùng với seeder cũ
+        $studentCodeIndex = 100;
 
         foreach ($classes as $class) {
             $currentCount = Student::where('class_id', $class->id)->count();
             $needed = 30 - $currentCount;
 
             if ($needed <= 0) {
-                $this->command->info("Lớp {$class->name} đã có đủ {$currentCount} sinh viên.");
                 continue;
             }
 
             $this->command->info("Đang tạo thêm {$needed} sinh viên cho lớp {$class->name}...");
 
             for ($i = 0; $i < $needed; $i++) {
-                $isMale = $faker->boolean(60); // 60% nam
+                $isMale = $faker->boolean(60);
                 $surname = $faker->randomElement($surnames);
                 $middleName = $isMale ? $faker->randomElement($middleNamesMale) : $faker->randomElement($middleNamesFemale);
                 $firstName = $isMale ? $faker->randomElement($firstNamesMale) : $faker->randomElement($firstNamesFemale);
@@ -58,15 +59,13 @@ class RealDataSeeder extends Seeder
                 $emailName = Str::slug($firstName . '.' . $surname . '.' . rand(100, 999));
                 $email = "{$emailName}@sv.fbu.edu.vn";
 
-                // 1. Tạo User
                 $user = User::create([
                     'name' => $fullName,
                     'email' => $email,
                     'password' => Hash::make('password'),
-                    'role_id' => 3, // Student
+                    'role_id' => 3,
                 ]);
 
-                // 2. Tạo Student
                 $studentCode = "SV2024" . str_pad($studentCodeIndex++, 3, '0', STR_PAD_LEFT);
                 $student = Student::create([
                     'user_id' => $user->id,
@@ -78,7 +77,25 @@ class RealDataSeeder extends Seeder
                     'address' => $faker->address,
                 ]);
 
-                // 3. Đăng ký 4-6 môn học ngẫu nhiên
+                // Tạo học phí cho 3 học kỳ
+                $semesters = [
+                    ['name' => 'HK1 - 2024/2025', 'deadline' => '2024-09-30'],
+                    ['name' => 'HK2 - 2024/2025', 'deadline' => '2025-02-28'],
+                    ['name' => 'HK1 - 2025/2026', 'deadline' => '2025-09-30'],
+                ];
+                foreach ($semesters as $sem) {
+                    $total = round(mt_rand(7500000, 12000000) / 100000) * 100000;
+                    $randPaid = mt_rand(1, 100);
+                    $paid = $randPaid <= 60 ? $total : ($randPaid <= 80 ? $total / 2 : 0);
+                    TuitionFee::create([
+                        'student_id'   => $student->id,
+                        'semester'     => $sem['name'],
+                        'total_amount' => $total,
+                        'paid_amount'  => $paid,
+                        'deadline'     => $sem['deadline'],
+                    ]);
+                }
+
                 $randomSubjects = $subjects->random(rand(4, 6));
                 foreach ($randomSubjects as $subject) {
                     $teacher = $teachers->random();
@@ -89,32 +106,62 @@ class RealDataSeeder extends Seeder
                         'teacher_id' => $teacher->id,
                     ]);
 
-                    // 4. Tạo điểm số ngẫu nhiên
-                    $attendance = round(mt_rand(70, 100) / 10, 1);
-                    $regular = round(mt_rand(50, 95) / 10, 1);
-                    $test = round(mt_rand(50, 95) / 10, 1);
-                    $midterm = round(mt_rand(40, 95) / 10, 1);
-                    $final = round(mt_rand(30, 98) / 10, 1);
+                    // 1. Tạo 15 buổi điểm danh
+                    $unexcusedCount = 0;
+                    for ($d = 1; $d <= 15; $d++) {
+                        $date = now()->subDays($d);
+                        $rand = mt_rand(1, 100);
+                        
+                        if ($rand <= 80) $status = 'present';
+                        elseif ($rand <= 88) $status = 'late';
+                        elseif ($rand <= 94) $status = 'absent_excused';
+                        else {
+                            $status = 'absent_unexcused';
+                            $unexcusedCount++;
+                        }
 
-                    // CC(10%) + TX(10%) + KT(10%) + GK(20%) + CK(50%)
-                    $total = round($attendance * 0.1 + $regular * 0.1 + $test * 0.1 + $midterm * 0.2 + $final * 0.5, 2);
-                    $grade = $total >= 8.5 ? 'Giỏi' : ($total >= 7.0 ? 'Khá' : ($total >= 5.0 ? 'Trung bình' : 'Yếu'));
+                        Attendance::create([
+                            'enrollment_id' => $enrollment->id,
+                            'date' => $date->format('Y-m-d'),
+                            'status' => $status,
+                            'note' => $status === 'absent_excused' ? 'Có phép' : null
+                        ]);
+                    }
+
+                    $isDisqualified = $unexcusedCount > 3;
+
+                    // 2. Điểm số
+                    $dist = mt_rand(1, 100);
+                    if ($dist <= 15) { // Giỏi
+                        $base = 8.5; $range = 1.4;
+                    } elseif ($dist <= 50) { // Khá
+                        $base = 7.0; $range = 1.4;
+                    } elseif ($dist <= 85) { // Trung bình
+                        $base = 5.0; $range = 1.9;
+                    } else { // Yếu
+                        $base = 2.0; $range = 2.9;
+                    }
+
+                    $att_score = round(mt_rand(70, 100) / 10, 1);
+                    $reg_score = round(($base + (mt_rand(0, 100) / 100 * $range)), 1);
+                    $test_score = round(($base + (mt_rand(0, 100) / 100 * $range)), 1);
+                    $mid_score = round(($base + (mt_rand(0, 100) / 100 * $range)), 1);
+                    $fin_score = round(($base + (mt_rand(0, 100) / 100 * $range)), 1);
 
                     Score::create([
                         'enrollment_id' => $enrollment->id,
-                        'attendance_score' => $attendance,
-                        'regular_score' => $regular,
-                        'test_score' => $test,
-                        'midterm_score' => $midterm,
-                        'final_score' => $final,
-                        'total_score' => $total,
-                        'grade' => $grade,
+                        'attendance_score' => $att_score,
+                        'regular_score' => $reg_score,
+                        'test_score' => $test_score,
+                        'midterm_score' => $mid_score,
+                        'final_score' => $fin_score,
+                        'is_disqualified' => $isDisqualified,
                     ]);
                 }
                 $countCreated++;
             }
         }
 
-        $this->command->info("Hoàn tất! Đã tạo thêm {$countCreated} sinh viên và hàng ngàn bản ghi điểm số.");
+        $this->command->info("Thành công! Đã tạo {$countCreated} sinh viên.");
     }
 }

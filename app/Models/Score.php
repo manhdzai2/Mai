@@ -16,6 +16,7 @@ class Score extends Model
         'final_score',
         'total_score',
         'grade',
+        'is_disqualified',
     ];
 
     protected static function boot()
@@ -33,7 +34,17 @@ class Score extends Model
             $score->total_score = round($total, 2);
 
             // Grade mapping
-            if ($total >= 8.5) {
+            if ($score->is_disqualified) {
+                $score->grade = 'Học lại (Cấm thi)';
+                $score->final_score = 0;
+                // Recalculate total if final is set to 0
+                $total = ($score->attendance_score * 0.1) + 
+                         ($score->regular_score * 0.1) + 
+                         ($score->test_score * 0.1) + 
+                         ($score->midterm_score * 0.2) + 
+                         (0 * 0.5);
+                $score->total_score = round($total, 2);
+            } elseif ($total >= 8.5) {
                 $score->grade = 'Giỏi';
             } elseif ($total >= 7.0) {
                 $score->grade = 'Khá';
