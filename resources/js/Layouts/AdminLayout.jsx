@@ -23,6 +23,8 @@ export default function AdminLayout({ children }) {
         { title: 'Khóa học', href: '/admin/classes', icon: 'menu_book' },
         { title: 'Phòng học', href: '/admin/classrooms', icon: 'meeting_room' },
         { title: 'Môn học', href: '/admin/subjects', icon: 'book' },
+        { title: 'Học liệu', href: '/admin/materials', icon: 'folder_open' },
+        { title: 'Bài tập', href: '/admin/assignments', icon: 'assignment' },
         { title: 'Điểm số', href: '/admin/scores', icon: 'analytics' },
     ];
 

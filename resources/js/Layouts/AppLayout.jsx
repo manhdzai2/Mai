@@ -48,15 +48,22 @@ function Sidebar({ role }) {
         { title: 'Giảng Viên', href: '/admin/teachers', icon: 'person' },
         { title: 'Sinh Viên', href: '/admin/students', icon: 'group' },
         { title: 'Học Phần', href: '/admin/subjects', icon: 'book' },
+        { title: 'Học Liệu', href: '/admin/materials', icon: 'folder_open' },
+        { title: 'Bài Tập', href: '/admin/assignments', icon: 'assignment' },
         { title: 'Khóa / Ngành', href: '/admin/classes', icon: 'class' },
         { title: 'Lớp Học Phần', href: '/admin/classrooms', icon: 'meeting_room' },
     ];
 
     const navTeacher = [
-        { title: 'Lớp Phụ Trách', href: '/teacher/enrollments', icon: 'menu_book' }
+        { title: 'Lớp Phụ Trách', href: '/teacher/enrollments', icon: 'menu_book' },
+        { title: 'Học Liệu', href: '/teacher/materials', icon: 'folder_open' },
+        { title: 'Bài Tập', href: '/teacher/assignments', icon: 'assignment' },
     ];
 
     const navStudent = [
+        { title: 'Tổng Quan', href: '/student/dashboard', icon: 'dashboard' },
+        { title: 'Học Liệu', href: '/student/materials', icon: 'library_books' },
+        { title: 'Bài Tập', href: '/student/assignments', icon: 'assignment' },
         { title: 'Hồ Sơ Cá Nhân', href: '/student/profile', icon: 'analytics' },
         { title: 'Thời Khóa Biểu', href: '/student/schedule', icon: 'calendar_today' },
     ];

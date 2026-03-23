@@ -73,6 +73,8 @@ Route::middleware(['auth', 'ensure.admin'])
         Route::resource('teachers', TeacherController::class);
         Route::resource('classrooms', ClassroomController::class);
         Route::resource('scores', ScoreController::class)->only(['index']);
+        Route::resource('materials', \App\Http\Controllers\Admin\MaterialController::class)->only(['index', 'destroy']);
+        Route::resource('assignments', \App\Http\Controllers\Admin\AssignmentController::class)->only(['index', 'destroy']);
     });
 
 // 5. NHÓM ROUTE DÀNH CHO TEACHER

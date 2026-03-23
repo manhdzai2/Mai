@@ -2,13 +2,14 @@ import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Form({ student }) {
+export default function Form({ student, classes }) {
     const isEditing = !!student;
 
     const { data, setData, post, put, processing, errors } = useForm({
         name: student?.user?.name || '',
         email: student?.user?.email || '',
         student_code: student?.student_code || '',
+        class_id: student?.class_id || '',
         password: '',
     });
 
@@ -71,6 +72,27 @@ export default function Form({ student }) {
                                     placeholder="Ví dụ: SV250001"
                                 />
                                 {errors.student_code && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.student_code}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Lớp học phần <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={data.class_id}
+                                    onChange={e => setData('class_id', e.target.value)}
+                                    className={`w-full md:max-w-md px-4 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                        errors.class_id 
+                                        ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
+                                        : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                                >
+                                    <option value="">-- Chọn lớp học --</option>
+                                    {classes && classes.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name} - {c.description}</option>
+                                    ))}
+                                </select>
+                                {errors.class_id && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.class_id}</p>}
                             </div>
                         </div>
                     </div>

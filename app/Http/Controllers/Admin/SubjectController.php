@@ -66,24 +66,31 @@ class SubjectController extends Controller
 
     public function show($id)
     {
-        $subject = Subject::findOrFail($id);
+        $subject = Subject::with(['enrollments.student.user', 'enrollments.teacher.user'])->findOrFail($id);
         
-        $enrollments = \App\Models\Enrollment::with(['student.user', 'teacher.user'])
+        $materials = \App\Models\Material::with('teacher.user')
             ->where('subject_id', $id)
-            ->get()
-            ->map(function ($enr) {
-                return [
-                    'student_code' => $enr->student->student_code ?? '',
-                    'student_name' => $enr->student->user->name ?? 'N/A',
-                    'student_email' => $enr->student->user->email ?? '',
-                    'teacher_name' => $enr->teacher->user->name ?? 'Chưa rõ',
-                    'score' => $enr->score,
-                ];
-            });
+            ->get();
+
+        $assignments = \App\Models\Assignment::with('teacher.user')
+            ->where('subject_id', $id)
+            ->get();
+
+        $enrollments = $subject->enrollments->map(function ($enr) {
+            return [
+                'student_code' => $enr->student->student_code ?? '',
+                'student_name' => $enr->student->user->name ?? 'N/A',
+                'student_email' => $enr->student->user->email ?? '',
+                'teacher_name' => $enr->teacher->user->name ?? 'Chưa rõ',
+                'score' => $enr->score,
+            ];
+        });
 
         return Inertia::render('Admin/Subjects/Show', [
             'subjectData' => $subject,
-            'enrollments' => $enrollments
+            'enrollments' => $enrollments,
+            'materials' => $materials,
+            'assignments' => $assignments
         ]);
     }
 }

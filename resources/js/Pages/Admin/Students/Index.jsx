@@ -117,7 +117,7 @@ export default function Index({ students, filters }) {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-on-surface-variant">
                                     <span className="material-symbols-outlined text-[16px]">school</span>
-                                    <span className="truncate">Chuyên ngành theo Lớp</span>
+                                    <span className="truncate">{student.class?.name || 'Chưa gán lớp'}</span>
                                 </div>
                             </div>
 

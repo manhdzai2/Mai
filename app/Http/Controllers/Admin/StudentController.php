@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\User;
+use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $students = Student::query()
-            ->with('user') // Nạp sẵn thông tin user (name, email)
+            ->with(['user', 'class']) // Nạp sẵn thông tin user và class
             ->when($request->search, function ($query, $search) {
                 $query->where('student_code', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($q) use ($search) {
@@ -35,7 +36,11 @@ class StudentController extends Controller
 
     public function create()
     {
-        return Inertia::render('Admin/Students/Form', ['student' => null]);
+        $classes = SchoolClass::orderBy('name')->get();
+        return Inertia::render('Admin/Students/Form', [
+            'student' => null,
+            'classes' => $classes
+        ]);
     }
 
     public function store(Request $request)
@@ -45,6 +50,7 @@ class StudentController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'student_code' => 'required|string|max:50|unique:students',
+            'class_id' => 'required|exists:classes,id',
         ]);
 
         // Dùng Transaction để đảm bảo tính toàn vẹn dữ liệu
@@ -54,13 +60,14 @@ class StudentController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role_id' => 3, // <--- BẠN BỔ SUNG THÊM DÒNG NÀY NHÉ
+                'role_id' => 3, 
             ]);
 
             // 2. Tạo Student liên kết với User vừa tạo
             Student::create([
                 'user_id' => $user->id,
                 'student_code' => $validated['student_code'],
+                'class_id' => $validated['class_id'],
             ]);
         });
 
@@ -70,9 +77,11 @@ class StudentController extends Controller
     public function edit($id)
     {
         $student = Student::with('user')->findOrFail($id);
+        $classes = SchoolClass::orderBy('name')->get();
         
         return Inertia::render('Admin/Students/Form', [
-            'student' => $student
+            'student' => $student,
+            'classes' => $classes
         ]);
     }
 
@@ -100,6 +109,7 @@ class StudentController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'student_code' => 'required|string|max:50|unique:students,student_code,' . $student->id,
+            'class_id' => 'required|exists:classes,id',
             'password' => 'nullable|string|min:8', // Cho phép không đổi mật khẩu
         ]);
 
@@ -117,6 +127,7 @@ class StudentController extends Controller
             // Cập nhật Student
             $student->update([
                 'student_code' => $validated['student_code'],
+                'class_id' => $validated['class_id'],
             ]);
         });
 

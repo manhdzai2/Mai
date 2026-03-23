@@ -73,6 +73,7 @@ export default function Show({ subjectData, enrollments }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Main Content - Student List */}
                 <div className="lg:col-span-8 space-y-6">
+                    {/* Student List */}
                     <div className="glass-card bg-white dark:bg-transparent rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
                         <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest">Danh Sách Học Viên Đăng Ký</h3>
@@ -86,44 +87,90 @@ export default function Show({ subjectData, enrollments }) {
                                         <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Mã SV</th>
                                         <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline">Họ và Tên</th>
                                         <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-center">Điểm TB</th>
-                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-right">Giảng Viên Phụ Trách</th>
+                                        <th className="px-6 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-gray-500 dark:text-outline text-right">Giảng Viên</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-outline-variant/5">
                                     {enrollments && enrollments.length > 0 ? (
                                         enrollments.map((enr, idx) => (
                                             <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
-                                                <td className="px-6 py-4 font-mono text-xs font-bold text-rose-600 dark:text-tertiary">
-                                                    {enr.student_code}
-                                                </td>
+                                                <td className="px-6 py-4 font-mono text-xs font-bold text-rose-600 dark:text-tertiary">{enr.student_code}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-gray-900 dark:text-white text-sm tracking-wide group-hover:text-rose-600 dark:group-hover:text-tertiary transition-colors">{enr.student_name}</div>
                                                     <div className="text-[10px] text-gray-500 dark:text-outline">{enr.student_email}</div>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <span className={`font-mono font-black text-sm ${
-                                                        !enr.score?.total_score ? 'text-gray-300' : 
-                                                        parseFloat(enr.score.total_score) >= 8.5 ? 'text-emerald-500' :
-                                                        parseFloat(enr.score.total_score) >= 7.0 ? 'text-indigo-500' :
-                                                        parseFloat(enr.score.total_score) >= 4.0 ? 'text-amber-500' : 'text-rose-500'
-                                                    }`}>
-                                                        {enr.score?.total_score || '--'}
-                                                    </span>
+                                                    <span className="font-mono font-black text-sm text-gray-900 dark:text-white">{enr.score?.total_score || '--'}</span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <span className="text-xs font-bold text-gray-600 dark:text-on-surface-variant italic">
-                                                        {enr.teacher_name}
-                                                    </span>
-                                                </td>
+                                                <td className="px-6 py-4 text-right italic text-xs text-gray-500">{enr.teacher_name}</td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-16 text-center text-gray-400 dark:text-outline uppercase tracking-widest text-xs font-bold">Chưa có dữ liệu đăng ký</td>
-                                        </tr>
+                                        <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-400">Chưa có sinh viên</td></tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    {/* Materials Section */}
+                    <div className="glass-card bg-white dark:bg-transparent rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
+                        <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                                <span className="material-symbols-outlined text-lg">folder_open</span> Học Liệu Môn Học
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            {materials && materials.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {materials.map(m => (
+                                        <div key={m.id} className="p-4 rounded-xl border border-gray-100 dark:border-outline-variant/10 bg-gray-50 dark:bg-white/5 flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                                                <span className="material-symbols-outlined">description</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{m.title}</p>
+                                                <p className="text-[10px] text-gray-500">GV: {m.teacher?.user?.name}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-center py-8 text-gray-400 text-xs italic font-bold uppercase tracking-widest">Chưa có học liệu</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Assignments Section */}
+                    <div className="glass-card bg-white dark:bg-transparent rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl border border-gray-200 dark:border-outline-variant/10">
+                        <div className="p-6 border-b border-gray-200 dark:border-outline-variant/10 bg-gray-50/50 dark:bg-surface-container-low/30 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                                <span className="material-symbols-outlined text-lg">assignment</span> Bài Tập Đánh Giá
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            {assignments && assignments.length > 0 ? (
+                                <div className="space-y-4">
+                                    {assignments.map(a => (
+                                        <div key={a.id} className="p-4 rounded-xl border border-gray-100 dark:border-outline-variant/10 bg-gray-50 dark:bg-white/5 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined">task</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-sm text-gray-900 dark:text-white">{a.title}</p>
+                                                    <p className="text-[10px] text-gray-500 italic">Hạn chót: {new Date(a.deadline).toLocaleDateString('vi-VN')}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full uppercase">Đang mở</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-center py-8 text-gray-400 text-xs italic font-bold uppercase tracking-widest">Chưa có bài tập</p>
+                            )}
                         </div>
                     </div>
                 </div>
