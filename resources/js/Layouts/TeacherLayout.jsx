@@ -1,71 +1,111 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Link, usePage } from '@inertiajs/react';
 
 export default function TeacherLayout({ children }) {
-    const { auth, url } = usePage().props;
+    const { auth, url, flash } = usePage().props;
     const user = auth?.user;
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success, { style: { borderRadius: '12px', background: '#1a1b2e', color: '#4edea3', border: '1px solid #4edea3', fontSize: '14px', fontWeight: 'bold' }, duration: 3000 });
+        if (flash?.error) toast.error(flash.error, { style: { borderRadius: '12px', background: '#1a1b2e', color: '#ffb4ab', border: '1px solid #ffb4ab', fontSize: '14px', fontWeight: 'bold' }, duration: 4000 });
+    }, [flash]);
+
+    useEffect(() => {
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+    }, []);
 
     const navItems = [
-        { title: 'Lớp học được giao', href: '/teacher/enrollments', icon: 'menu_book' }
+        { title: 'Bảng Điều Khiển', href: '/teacher/dashboard', icon: 'dashboard' },
+        { title: 'Lớp Giảng Dạy', href: '/teacher/enrollments', icon: 'menu_book' },
+        { title: 'Điểm Danh', href: '/teacher/attendance', icon: 'fact_check' },
+        { title: 'Học Liệu', href: '/teacher/materials', icon: 'folder_open' },
+        { title: 'Bài Tập', href: '/teacher/assignments', icon: 'assignment' },
+        { title: 'Phân Tích', href: '/teacher/analytics', icon: 'bar_chart' },
+        { title: 'Thông Báo', href: '/teacher/announcements', icon: 'campaign' },
+        { title: 'Đơn Nghỉ', href: '/teacher/leave-requests', icon: 'event_busy' },
     ];
 
     const toggleTheme = () => {
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.theme = isDark ? 'dark' : 'light';
+        const html = document.documentElement;
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            localStorage.theme = 'light';
+            setIsDarkMode(false);
+        } else {
+            html.classList.add('dark');
+            localStorage.theme = 'dark';
+            setIsDarkMode(true);
+        }
     };
 
     return (
-        <div className="bg-gray-50 dark:bg-[#0b1326] text-gray-900 dark:text-gray-100 min-h-screen font-body antialiased transition-colors duration-300">
-            {/* TopNavBar */}
-            <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-sm dark:shadow-none h-20 transition-colors">
-                <div className="flex justify-between items-center px-6 md:px-8 h-full w-full max-w-screen-2xl mx-auto">
-                    <div className="flex items-center gap-8">
-                        <span className="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-headline tracking-tight">Fluid Academy</span>
-                        <div className="hidden md:flex items-center gap-6">
-                            {navItems.map(item => {
-                                const isActive = url?.startsWith(item.href);
-                                return (
-                                    <Link 
-                                        key={item.href} 
-                                        href={item.href} 
-                                        className={`font-headline text-sm tracking-tight transition-all ease-in-out duration-200 ${isActive ? 'text-indigo-600 dark:text-indigo-400 font-bold border-b-2 border-indigo-600 pb-1' : 'text-slate-600 dark:text-slate-400 font-medium hover:text-indigo-500 dark:hover:text-indigo-300'}`}
-                                    >
-                                        {item.title}
-                                    </Link>
-                                );
-                            })}
+        <div className="bg-gray-50 dark:bg-[#0b1326] text-gray-900 dark:text-gray-100 selection:bg-indigo-200 dark:selection:bg-primary-container font-body antialiased transition-colors duration-300">
+            <div className="flex min-h-screen">
+                {/* Sidebar */}
+                <aside className="h-screen flex-shrink-0 w-64 bg-slate-50 dark:bg-slate-900 flex flex-col py-6 px-4 font-headline antialiased sticky top-0 hidden md:flex">
+                    <div className="mb-10 px-4">
+                        <h1 className="text-2xl font-bold text-indigo-700 dark:text-indigo-300 tracking-tight">Cổng Giảng Viên</h1>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-body">Quản lý lớp học & đánh giá</p>
+                    </div>
+
+                    <nav className="flex-1 space-y-1.5">
+                        {navItems.map(item => {
+                            const isActive = url?.startsWith(item.href);
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                                        isActive
+                                            ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-300'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
+                                        {item.icon}
+                                    </span>
+                                    {item.title}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    {/* User & Actions */}
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-2">
+                        <div className="flex items-center gap-3 px-4 py-2 mb-2">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold flex items-center justify-center text-sm shadow">
+                                {user?.name?.charAt(0) || 'U'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{user?.name || 'Giảng viên'}</p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || ''}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="text-slate-600 dark:text-slate-400 hover:text-indigo-500 transition-all">
-                            <span className="material-symbols-outlined">notifications</span>
+                        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <span className="material-symbols-outlined text-[20px]">{isDarkMode ? 'light_mode' : 'dark_mode'}</span>
+                            {isDarkMode ? 'Giao diện Sáng' : 'Giao diện Tối'}
                         </button>
-                        <button onClick={toggleTheme} className="text-slate-600 dark:text-slate-400 hover:text-indigo-500 transition-all">
-                            <span className="material-symbols-outlined">dark_mode</span>
-                        </button>
-                        <Link href={route('logout')} method="post" as="button" className="text-error font-headline font-bold text-sm bg-error/10 hover:bg-error/20 px-4 py-2 rounded-xl transition-all mr-2">
-                            Đăng xuất
+                        <Link
+                            href={route('logout')}
+                            method="post"
+                            as="button"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">logout</span>
+                            Đăng Xuất
                         </Link>
-                        <div className="w-10 h-10 rounded-full font-bold bg-primary text-white flex items-center justify-center shadow-md border-2 border-primary/20">{user?.name?.charAt(0) || 'U'}</div>
                     </div>
-                </div>
-            </nav>
+                </aside>
 
-            {/* Main Content */}
-            <main className="pt-28 pb-32 px-4 md:px-8 max-w-screen-2xl mx-auto min-h-screen">
-                {children}
-            </main>
-
-            {/* BottomNavBar (Mobile Only) */}
-            <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
-                {navItems.map(item => (
-                    <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 rounded-2xl px-5 py-2 transition-transform active:scale-90">
-                        <span className="material-symbols-outlined">{item.icon}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest mt-1">Lớp Học</span>
-                    </Link>
-                ))}
-            </nav>
+                {/* Main Content */}
+                <main className="flex-1 min-h-screen">
+                    <div className="p-6 md:p-8 max-w-[1400px] mx-auto">
+                        {children}
+                    </div>
+                </main>
+            </div>
             <Toaster position="bottom-right" />
         </div>
     );

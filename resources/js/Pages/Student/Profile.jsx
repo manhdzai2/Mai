@@ -115,12 +115,14 @@ export default function Profile({ studentInfo, enrollments }) {
                     {enrollments && enrollments.length > 0 ? (
                         enrollments.map((enr, idx) => {
                             const rawCC = enr.score?.attendance_score;
+                            const rawTX = enr.score?.regular_score;
+                            const rawKT = enr.score?.test_score;
                             const rawGK = enr.score?.midterm_score;
                             const rawCK = enr.score?.final_score;
                             
-                            const hasFullScore = rawCC !== null && rawGK !== null && rawCK !== null;
+                            const hasFullScore = rawCC != null && rawTX != null && rawKT != null && rawGK != null && rawCK != null;
                             const tk = hasFullScore 
-                                ? (parseFloat(rawCC) * 0.1 + parseFloat(rawGK) * 0.3 + parseFloat(rawCK) * 0.6).toFixed(1)
+                                ? (parseFloat(rawCC)*0.1 + parseFloat(rawTX)*0.1 + parseFloat(rawKT)*0.1 + parseFloat(rawGK)*0.2 + parseFloat(rawCK)*0.5).toFixed(1)
                                 : null;
 
                             return (
@@ -151,19 +153,13 @@ export default function Profile({ studentInfo, enrollments }) {
                                         </div>
                                     </div>
     
-                                    <div className="grid grid-cols-3 gap-2 mt-auto relative z-10 pt-4 border-t border-outline-variant/5">
-                                        <div className="bg-surface-container rounded-lg p-2 text-center">
-                                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">CC 10%</p>
-                                            <p className="font-mono font-bold text-sm text-on-surface">{rawCC !== null ? rawCC : '-'}</p>
-                                        </div>
-                                        <div className="bg-surface-container rounded-lg p-2 text-center">
-                                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">GK 30%</p>
-                                            <p className="font-mono font-bold text-sm text-on-surface">{rawGK !== null ? rawGK : '-'}</p>
-                                        </div>
-                                        <div className="bg-surface-container rounded-lg p-2 text-center">
-                                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">CK 60%</p>
-                                            <p className="font-mono font-bold text-sm text-on-surface">{rawCK !== null ? rawCK : '-'}</p>
-                                        </div>
+                                    <div className="grid grid-cols-5 gap-1.5 mt-auto relative z-10 pt-4 border-t border-outline-variant/5">
+                                        {[{label:'CC',pct:'10%',val:rawCC},{label:'TX',pct:'10%',val:rawTX},{label:'KT',pct:'10%',val:rawKT},{label:'GK',pct:'20%',val:rawGK},{label:'CK',pct:'50%',val:rawCK}].map(d => (
+                                            <div key={d.label} className="bg-surface-container rounded-lg p-1.5 text-center">
+                                                <p className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider mb-0.5">{d.label} {d.pct}</p>
+                                                <p className="font-mono font-bold text-sm text-on-surface">{d.val != null ? d.val : '-'}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </motion.div>
                             );

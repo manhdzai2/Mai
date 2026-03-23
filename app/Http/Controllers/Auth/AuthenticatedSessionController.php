@@ -37,21 +37,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // --- LẤY THÔNG TIN ROLE ĐỂ CHUYỂN HƯỚNG ---
-        $roleId = $request->user()->role_id;
+        $user = $request->user();
 
-        // 1: Admin -> Vào trang Dashboard Admin
-        if ($roleId == 1) {
-            return redirect()->route('admin.dashboard');
-        }
-        
-        // 2: Teacher -> Vào thẳng trang Danh sách lớp dạy
-        if ($roleId == 2) {
-            return redirect()->route('teacher.enrollments.index');
-        }
-
-        // 3: Student -> Vào trang Hồ sơ sinh viên
-        if ($roleId == 3) {
-            return redirect()->route('student.profile');
+        if ($user->role_id == 2) {
+            return redirect()->route('teacher.dashboard');
+        } elseif ($user->role_id == 3) {
+            return redirect()->route('student.dashboard');
         }
 
         // Mặc định nếu không thuộc role nào

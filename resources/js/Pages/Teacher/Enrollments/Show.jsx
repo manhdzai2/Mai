@@ -10,10 +10,12 @@ export default function Show({ subject, semester, enrollments }) {
             "STT": i + 1,
             "Mã Sinh Viên": enr.student?.student_code || '',
             "Họ Tên": enr.student?.user?.name || '',
-            "Điểm Chuyên Cần (10%)": enr.score?.attendance_score || '',
-            "Điểm Giữa Kỳ (30%)": enr.score?.midterm_score || '',
-            "Điểm Cuối Kỳ (60%)": enr.score?.final_score || '',
-            "Điểm Tổng Kết": enr.score?.total_score || '',
+            "Chuyên Cần (10%)": enr.score?.attendance_score ?? '',
+            "Thường Xuyên (10%)": enr.score?.regular_score ?? '',
+            "Kiểm Tra (10%)": enr.score?.test_score ?? '',
+            "Giữa Kỳ (20%)": enr.score?.midterm_score ?? '',
+            "Cuối Kỳ (50%)": enr.score?.final_score ?? '',
+            "Điểm Tổng Kết": enr.score?.total_score ?? '',
             "Xếp Loại": enr.score?.grade || ''
         }));
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -26,12 +28,12 @@ export default function Show({ subject, semester, enrollments }) {
         if (!enrollments || enrollments.length === 0) return alert("Không có dữ liệu.");
         const { default: jsPDF } = await import('jspdf');
         await import('jspdf-autotable');
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         
         doc.text(`Bang Diem: ${subject?.name || ''}`, 14, 15);
         doc.text(`Ma Hoc Phan: ${subject?.code || ''}`, 14, 22);
 
-        const tableColumn = ["STT", "Ma SV", "Ho Ten", "Chuyen Can", "Giua Ky", "Cuoi Ky", "Tong Ket"];
+        const tableColumn = ["STT", "Ma SV", "Ho Ten", "CC(10%)", "TX(10%)", "KT(10%)", "GK(20%)", "CK(50%)", "Tong Ket", "Xep Loai"];
         const tableRows = [];
 
         enrollments.forEach((enr, i) => {
@@ -39,10 +41,13 @@ export default function Show({ subject, semester, enrollments }) {
                 i + 1,
                 enr.student?.student_code || '',
                 (enr.student?.user?.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'),
-                enr.score?.attendance_score || '-',
-                enr.score?.midterm_score || '-',
-                enr.score?.final_score || '-',
-                enr.score?.total_score || '-'
+                enr.score?.attendance_score ?? '-',
+                enr.score?.regular_score ?? '-',
+                enr.score?.test_score ?? '-',
+                enr.score?.midterm_score ?? '-',
+                enr.score?.final_score ?? '-',
+                enr.score?.total_score ?? '-',
+                enr.score?.grade || '-'
             ];
             tableRows.push(data);
         });
@@ -110,6 +115,9 @@ export default function Show({ subject, semester, enrollments }) {
                                     <span className="material-symbols-outlined text-[16px]">calendar_month</span>
                                     Học kỳ {semester}
                                 </span>
+                                <span className="px-2.5 py-1 rounded-lg bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-wider">
+                                    Công thức: CC(10) + TX(10) + KT(10) + GK(20) + CK(50)
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -153,7 +161,7 @@ export default function Show({ subject, semester, enrollments }) {
                         <input type="text" placeholder="Tìm kiếm sinh viên..." className="w-64 bg-surface-container-lowest border border-outline-variant/20 rounded-lg py-2 pl-9 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface placeholder:text-on-surface-variant/50" />
                     </div>
                     <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 hover:bg-surface-container text-on-surface rounded-lg text-sm font-bold transition-all shadow-sm">
-                        <span className="material-symbols-outlined text-[18px]">table_view</span> CSV
+                        <span className="material-symbols-outlined text-[18px]">table_view</span> Excel
                     </button>
                     <button onClick={handleExportPDF} className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/20 hover:bg-surface-container text-on-surface rounded-lg text-sm font-bold transition-all shadow-sm">
                         <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span> PDF
@@ -161,18 +169,22 @@ export default function Show({ subject, semester, enrollments }) {
                 </div>
             </div>
 
-            {/* Grades Table */}
+            {/* Grades Table - 5 đầu điểm */}
             <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-surface-container-low border-b border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                                <th className="px-6 py-4 w-16 text-center">STT</th>
-                                <th className="px-6 py-4">Sinh viên</th>
-                                <th className="px-4 py-4 text-center border-x border-outline-variant/5">Chuyên cần (10%)</th>
-                                <th className="px-4 py-4 text-center border-r border-outline-variant/5">Giữa kỳ (30%)</th>
-                                <th className="px-4 py-4 text-center border-r border-outline-variant/5">Cuối kỳ (60%)</th>
-                                <th className="px-6 py-4 text-center">Thao tác</th>
+                                <th className="px-4 py-4 w-12 text-center">STT</th>
+                                <th className="px-4 py-4">Sinh viên</th>
+                                <th className="px-3 py-4 text-center border-x border-outline-variant/5 whitespace-nowrap">CC (10%)</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">TX (10%)</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">KT (10%)</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">GK (20%)</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">CK (50%)</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">Tổng kết</th>
+                                <th className="px-3 py-4 text-center border-r border-outline-variant/5 whitespace-nowrap">Xếp loại</th>
+                                <th className="px-4 py-4 text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant/5">
@@ -182,7 +194,7 @@ export default function Show({ subject, semester, enrollments }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-24 text-center">
+                                    <td colSpan="10" className="px-6 py-24 text-center">
                                         <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-50 mb-3 block">search_off</span>
                                         <h3 className="text-sm font-bold text-on-surface">Chưa có Sinh viên</h3>
                                         <p className="text-xs text-on-surface-variant mt-1">Vui lòng chờ sinh viên đăng ký học phần này.</p>
@@ -201,82 +213,143 @@ function ScoreRow({ enrollment, index }) {
     const { data, setData, post, processing } = useForm({
         enrollment_id: enrollment.id,
         attendance_score: enrollment.score?.attendance_score ?? '',
+        regular_score: enrollment.score?.regular_score ?? '',
+        test_score: enrollment.score?.test_score ?? '',
         midterm_score: enrollment.score?.midterm_score ?? '',
         final_score: enrollment.score?.final_score ?? '',
     });
 
     const [isEditing, setIsEditing] = useState(false);
 
+    // Tính điểm tạm thời ngay trên giao diện
+    const previewTotal = React.useMemo(() => {
+        const att = parseFloat(data.attendance_score);
+        const reg = parseFloat(data.regular_score);
+        const test = parseFloat(data.test_score);
+        const mid = parseFloat(data.midterm_score);
+        const fin = parseFloat(data.final_score);
+        if ([att, reg, test, mid, fin].some(isNaN)) return null;
+        return ((att * 0.1) + (reg * 0.1) + (test * 0.1) + (mid * 0.2) + (fin * 0.5)).toFixed(1);
+    }, [data]);
+
+    const previewGrade = React.useMemo(() => {
+        if (!previewTotal) return null;
+        const t = parseFloat(previewTotal);
+        if (t >= 8.5) return 'A';
+        if (t >= 7.0) return 'B';
+        if (t >= 5.5) return 'C';
+        if (t >= 4.0) return 'D';
+        return 'F';
+    }, [previewTotal]);
+
     const handleSave = () => {
+        // Validate phía frontend trước khi gửi
+        const fields = ['attendance_score', 'regular_score', 'test_score', 'midterm_score', 'final_score'];
+        for (const f of fields) {
+            const val = data[f];
+            if (val !== '' && val !== null && val !== undefined) {
+                const num = parseFloat(val);
+                if (isNaN(num) || num < 0 || num > 10) {
+                    alert(`Điểm phải từ 0 đến 10! Trường "${f.replace('_score','').toUpperCase()}" không hợp lệ.`);
+                    return;
+                }
+            }
+        }
         post(route('teacher.enrollments.update-score'), {
             preserveScroll: true,
             onSuccess: () => setIsEditing(false),
         });
     };
 
+    const savedTotal = enrollment.score?.total_score;
+    const savedGrade = enrollment.score?.grade;
+    const displayTotal = isEditing ? previewTotal : savedTotal;
+    const displayGrade = isEditing ? previewGrade : savedGrade;
+
+    // Kiểm tra giá trị hợp lệ
+    const isValidScore = (val) => {
+        if (val === '' || val === null || val === undefined) return true; // empty cho phép
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0 && num <= 10;
+    };
+
+    // Hàm render ô nhập điểm (có validation highlight)
+    const ScoreCell = ({ field }) => (
+        <td className="px-2 py-3 text-center border-l border-outline-variant/5">
+            {isEditing ? (
+                <input 
+                    type="number" step="0.1" min="0" max="10"
+                    value={data[field]}
+                    onChange={e => {
+                        const val = e.target.value;
+                        setData(field, val);
+                    }}
+                    className={`w-14 px-1 py-1.5 text-center text-sm font-mono border rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-on-surface outline-none transition-colors ${
+                        !isValidScore(data[field]) 
+                            ? 'border-red-500 ring-2 ring-red-500/30 focus:border-red-500 focus:ring-red-500/30' 
+                            : 'border-outline-variant/20 focus:border-primary'
+                    }`}
+                    title="Nhập điểm từ 0 đến 10"
+                />
+            ) : (
+                <span className="font-mono text-on-surface font-bold text-sm">
+                    {data[field] !== '' && data[field] !== null ? data[field] : <span className="text-on-surface-variant opacity-50">-</span>}
+                </span>
+            )}
+        </td>
+    );
+
+    // Màu cho Grade badge
+    const gradeColor = {
+        'A': 'bg-green-500/10 text-green-600 dark:text-green-400',
+        'B': 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+        'C': 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
+        'D': 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
+        'F': 'bg-red-500/10 text-red-600 dark:text-red-400',
+    };
+
     return (
         <tr className="hover:bg-surface-container-high/30 transition-colors group">
-            <td className="px-6 py-4 text-center text-xs font-bold text-on-surface-variant">
+            <td className="px-4 py-3 text-center text-xs font-bold text-on-surface-variant">
                 {index + 1}
             </td>
-            <td className="px-6 py-4">
+            <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface font-bold text-sm shadow-inner shadow-black/5">
+                    <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface font-bold text-sm shadow-inner shadow-black/5">
                         {enrollment.student?.user?.name ? enrollment.student.user.name.charAt(0) : 'S'}
                     </div>
                     <div>
-                        <div className="font-bold text-on-surface text-sm">{enrollment.student?.user?.name || 'Không rõ'}</div>
+                        <div className="font-bold text-on-surface text-sm whitespace-nowrap">{enrollment.student?.user?.name || 'Không rõ'}</div>
                         <div className="text-[10px] font-mono font-bold text-on-surface-variant mt-0.5">{enrollment.student?.student_code}</div>
                     </div>
                 </div>
             </td>
             
-            <td className="px-4 py-4 text-center bg-primary/5 border-l border-outline-variant/5">
-                {isEditing ? (
-                    <input 
-                        type="number" step="0.1" min="0" max="10"
-                        value={data.attendance_score}
-                        onChange={e => setData('attendance_score', e.target.value)}
-                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
-                    />
-                ) : (
-                    <span className="font-mono text-on-surface font-bold text-sm">
-                        {data.attendance_score !== '' ? data.attendance_score : <span className="text-on-surface-variant opacity-50">-</span>}
-                    </span>
-                )}
+            <ScoreCell field="attendance_score" />
+            <ScoreCell field="regular_score" />
+            <ScoreCell field="test_score" />
+            <ScoreCell field="midterm_score" />
+            <ScoreCell field="final_score" />
+
+            {/* Tổng kết */}
+            <td className="px-2 py-3 text-center border-l border-outline-variant/5">
+                <span className={`font-mono font-black text-sm ${displayTotal !== null ? (parseFloat(displayTotal) >= 4 ? 'text-green-600 dark:text-green-400' : 'text-red-500') : 'text-on-surface-variant opacity-50'}`}>
+                    {displayTotal !== null && displayTotal !== undefined ? displayTotal : '-'}
+                </span>
             </td>
-            
-            <td className="px-4 py-4 text-center bg-primary/5 border-l border-outline-variant/5">
-                {isEditing ? (
-                    <input 
-                        type="number" step="0.1" min="0" max="10"
-                        value={data.midterm_score}
-                        onChange={e => setData('midterm_score', e.target.value)}
-                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
-                    />
-                ) : (
-                    <span className="font-mono text-on-surface font-bold text-sm">
-                        {data.midterm_score !== '' ? data.midterm_score : <span className="text-on-surface-variant opacity-50">-</span>}
+
+            {/* Xếp loại */}
+            <td className="px-2 py-3 text-center border-l border-outline-variant/5">
+                {displayGrade ? (
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-black ${gradeColor[displayGrade] || 'text-on-surface-variant'}`}>
+                        {displayGrade}
                     </span>
-                )}
-            </td>
-            
-            <td className="px-4 py-4 text-center bg-primary/5 border-x border-outline-variant/5">
-                {isEditing ? (
-                    <input 
-                        type="number" step="0.1" min="0" max="10"
-                        value={data.final_score}
-                        onChange={e => setData('final_score', e.target.value)}
-                        className="w-16 px-2 py-1.5 text-center text-sm font-mono border border-outline-variant/20 rounded-md bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface outline-none"
-                    />
                 ) : (
-                    <span className="font-mono text-on-surface font-bold text-sm">
-                        {data.final_score !== '' ? data.final_score : <span className="text-on-surface-variant opacity-50">-</span>}
-                    </span>
+                    <span className="text-on-surface-variant opacity-50 text-sm">-</span>
                 )}
             </td>
 
-            <td className="px-6 py-4 text-center">
+            <td className="px-4 py-3 text-center">
                 {isEditing ? (
                     <div className="flex items-center justify-center gap-2">
                         <button 

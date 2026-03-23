@@ -16,9 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // THÊM ĐOẠN NÀY ĐỂ ĐĂNG KÝ TÊN 'ensure.admin'
         $middleware->alias([
-            'ensure.admin' => \App\Http\Middleware\EnsureAdmin::class,
+            //
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -62,23 +62,44 @@ class EnrollmentController extends Controller
         ]);
     }
 
-    // Thêm hàm updateScore này
+    // Hàm cập nhật điểm đa thành phần (5 đầu điểm)
     public function updateScore(Request $request)
     {
         // 1. Kiểm tra dữ liệu gửi lên phải hợp lệ (từ 0 đến 10)
         $validated = $request->validate([
-            'enrollment_id' => 'required|exists:enrollments,id',
+            'enrollment_id'    => 'required|exists:enrollments,id',
             'attendance_score' => 'nullable|numeric|min:0|max:10',
-            'midterm_score' => 'nullable|numeric|min:0|max:10',
-            'final_score' => 'nullable|numeric|min:0|max:10',
+            'regular_score'    => 'nullable|numeric|min:0|max:10',
+            'test_score'       => 'nullable|numeric|min:0|max:10',
+            'midterm_score'    => 'nullable|numeric|min:0|max:10',
+            'final_score'      => 'nullable|numeric|min:0|max:10',
+        ], [
+            '*.min' => 'Điểm phải từ 0 đến 10.',
+            '*.max' => 'Điểm phải từ 0 đến 10.',
+            '*.numeric' => 'Điểm phải là số hợp lệ.',
         ]);
 
+        // Convert empty/null strings thành null
+        $scoreFields = ['attendance_score', 'regular_score', 'test_score', 'midterm_score', 'final_score'];
+        foreach ($scoreFields as $field) {
+            $validated[$field] = ($validated[$field] !== null && $validated[$field] !== '') 
+                ? (float) $validated[$field] 
+                : null;
+        }
+
         // Tính điểm tổng (Total Score) và Xếp loại chữ (Grade)
+        // Công thức: CC(10%) + TX(10%) + KT(10%) + GK(20%) + CK(50%)
         $totalScore = null;
         $grade = null;
 
-        if (isset($validated['attendance_score']) && isset($validated['midterm_score']) && isset($validated['final_score'])) {
-            $total = ($validated['attendance_score'] * 0.1) + ($validated['midterm_score'] * 0.3) + ($validated['final_score'] * 0.6);
+        $att = $validated['attendance_score'];
+        $reg = $validated['regular_score'];
+        $test = $validated['test_score'];
+        $mid = $validated['midterm_score'];
+        $fin = $validated['final_score'];
+
+        if ($att !== null && $reg !== null && $test !== null && $mid !== null && $fin !== null) {
+            $total = ($att * 0.1) + ($reg * 0.1) + ($test * 0.1) + ($mid * 0.2) + ($fin * 0.5);
             $totalScore = round($total, 1);
             
             if ($totalScore >= 8.5) $grade = 'A';
@@ -93,15 +114,34 @@ class EnrollmentController extends Controller
             ['enrollment_id' => $validated['enrollment_id']],
             [
                 'attendance_score' => $validated['attendance_score'],
-                'midterm_score' => $validated['midterm_score'],
-                'final_score' => $validated['final_score'],
-                'total_score' => $totalScore,
-                'grade' => $grade,
+                'regular_score'    => $validated['regular_score'],
+                'test_score'       => $validated['test_score'],
+                'midterm_score'    => $validated['midterm_score'],
+                'final_score'      => $validated['final_score'],
+                'total_score'      => $totalScore,
+                'grade'            => $grade,
             ]
         );
 
         // 3. Trả về thông báo thành công cho React (Toast sẽ hiện lên)
         return back()->with('success', 'Đã lưu điểm thành công!');
     }
-    
+
+    /**
+     * Xem hồ sơ sinh viên (quyền hạn chế cho giáo viên)
+     */
+    public function studentProfile(Request $request, $id)
+    {
+        $student = \App\Models\Student::with([
+            'user',
+            'class',
+            'enrollments.subject',
+            'enrollments.score',
+            'enrollments.teacher.user',
+        ])->findOrFail($id);
+
+        return Inertia::render('Teacher/Students/Profile', [
+            'student' => $student,
+        ]);
+    }
 }

@@ -14,6 +14,7 @@ use App\Models\Classroom;
 use App\Models\Enrollment;
 use App\Models\Score;
 use App\Models\Schedule;
+use App\Models\Attendance;
 
 class DatabaseSeeder extends Seeder
 {
@@ -250,17 +251,22 @@ class DatabaseSeeder extends Seeder
                     'teacher_id' => $teacherModels[$teacherIdx]->id,
                 ]);
 
-                // Tạo điểm ngẫu nhiên hợp lý
+                // Tạo điểm ngẫu nhiên hợp lý (5 đầu điểm)
                 $attendance = round(mt_rand(60, 100) / 10, 1);   // 6.0 - 10.0
+                $regular = round(mt_rand(50, 95) / 10, 1);       // 5.0 - 9.5
+                $test = round(mt_rand(40, 95) / 10, 1);          // 4.0 - 9.5
                 $midterm = round(mt_rand(40, 95) / 10, 1);       // 4.0 - 9.5
                 $final = round(mt_rand(35, 98) / 10, 1);         // 3.5 - 9.8
 
-                $total = round($attendance * 0.1 + $midterm * 0.3 + $final * 0.6, 2);
+                // Công thức: CC(10%) + TX(10%) + KT(10%) + GK(20%) + CK(50%)
+                $total = round($attendance * 0.1 + $regular * 0.1 + $test * 0.1 + $midterm * 0.2 + $final * 0.5, 2);
                 $grade = $total >= 8.5 ? 'Giỏi' : ($total >= 7.0 ? 'Khá' : ($total >= 5.0 ? 'Trung bình' : 'Yếu'));
 
                 Score::create([
                     'enrollment_id' => $enrollment->id,
                     'attendance_score' => $attendance,
+                    'regular_score' => $regular,
+                    'test_score' => $test,
                     'midterm_score' => $midterm,
                     'final_score' => $final,
                     'total_score' => $total,
@@ -273,34 +279,176 @@ class DatabaseSeeder extends Seeder
         // 9. SCHEDULES (Lịch học cho sinh viên)
         // ══════════════════════════════════════════
         $scheduleData = [
-            // Toán cao cấp
+            // ── PGS.TS Trần Thị Hương (GV Demo - dạy NVN, TDN, TCT, TTQ) ──
+            // Thứ 2
+            ['subject_id' => $subjectModels[14]->id, 'day_of_week' => 'Thứ 2', 'study_date' => '2026-03-23', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 301-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'rose'],
+            ['subject_id' => $subjectModels[10]->id, 'day_of_week' => 'Thứ 2', 'study_date' => '2026-03-23', 'start_time' => '13:00', 'end_time' => '15:00', 'room' => 'Phòng 302-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'orange'],
+            // Thứ 3
+            ['subject_id' => $subjectModels[15]->id, 'day_of_week' => 'Thứ 3', 'study_date' => '2026-03-24', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 302-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'orange'],
+            // Thứ 4
+            ['subject_id' => $subjectModels[14]->id, 'day_of_week' => 'Thứ 4', 'study_date' => '2026-03-25', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 301-A1', 'type' => 'Thực hành', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'rose'],
+            ['subject_id' => $subjectModels[19]->id, 'day_of_week' => 'Thứ 4', 'study_date' => '2026-03-25', 'start_time' => '13:00', 'end_time' => '15:30', 'room' => 'Phòng 404-A2', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'purple'],
+            // Thứ 5
+            ['subject_id' => $subjectModels[15]->id, 'day_of_week' => 'Thứ 5', 'study_date' => '2026-03-26', 'start_time' => '13:00', 'end_time' => '15:30', 'room' => 'Phòng 302-A1', 'type' => 'Bài tập', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'orange'],
+            // Thứ 6
+            ['subject_id' => $subjectModels[14]->id, 'day_of_week' => 'Thứ 6', 'study_date' => '2026-03-27', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 301-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'rose'],
+
+            // ── TS. Lê Quang Minh (Toán, XST) ──
             ['subject_id' => $subjectModels[3]->id, 'day_of_week' => 'Thứ 2', 'study_date' => '2026-03-23', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Hội trường C1', 'type' => 'Lý thuyết', 'instructor' => 'TS. Lê Quang Minh', 'color_theme' => 'blue'],
             ['subject_id' => $subjectModels[3]->id, 'day_of_week' => 'Thứ 5', 'study_date' => '2026-03-26', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Hội trường C1', 'type' => 'Bài tập', 'instructor' => 'TS. Lê Quang Minh', 'color_theme' => 'blue'],
-
-            // Xác suất thống kê
             ['subject_id' => $subjectModels[4]->id, 'day_of_week' => 'Thứ 3', 'study_date' => '2026-03-24', 'start_time' => '09:45', 'end_time' => '11:45', 'room' => 'Phòng 105-B3', 'type' => 'Lý thuyết', 'instructor' => 'TS. Lê Quang Minh', 'color_theme' => 'purple'],
             ['subject_id' => $subjectModels[4]->id, 'day_of_week' => 'Thứ 6', 'study_date' => '2026-03-27', 'start_time' => '09:45', 'end_time' => '11:45', 'room' => 'Phòng 105-B3', 'type' => 'Bài tập', 'instructor' => 'TS. Lê Quang Minh', 'color_theme' => 'purple'],
 
-            // Kinh tế vi mô
+            // ── ThS. Phạm Thanh Tùng (KTV, KVM) ──
             ['subject_id' => $subjectModels[7]->id, 'day_of_week' => 'Thứ 2', 'study_date' => '2026-03-23', 'start_time' => '13:00', 'end_time' => '15:00', 'room' => 'Phòng 201-B2', 'type' => 'Lý thuyết', 'instructor' => 'ThS. Phạm Thanh Tùng', 'color_theme' => 'emerald'],
             ['subject_id' => $subjectModels[7]->id, 'day_of_week' => 'Thứ 4', 'study_date' => '2026-03-25', 'start_time' => '13:00', 'end_time' => '15:00', 'room' => 'Phòng 201-B2', 'type' => 'Thảo luận', 'instructor' => 'ThS. Phạm Thanh Tùng', 'color_theme' => 'emerald'],
-
-            // Kinh tế vĩ mô
             ['subject_id' => $subjectModels[8]->id, 'day_of_week' => 'Thứ 3', 'study_date' => '2026-03-24', 'start_time' => '13:00', 'end_time' => '15:30', 'room' => 'Phòng 203-B1', 'type' => 'Lý thuyết', 'instructor' => 'ThS. Phạm Thanh Tùng', 'color_theme' => 'amber'],
 
-            // Nghiệp vụ NH TM
-            ['subject_id' => $subjectModels[14]->id, 'day_of_week' => 'Thứ 4', 'study_date' => '2026-03-25', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 301-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'rose'],
-            ['subject_id' => $subjectModels[14]->id, 'day_of_week' => 'Thứ 6', 'study_date' => '2026-03-27', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng 301-A1', 'type' => 'Thực hành', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'rose'],
-
-            // Tín dụng NH
-            ['subject_id' => $subjectModels[15]->id, 'day_of_week' => 'Thứ 5', 'study_date' => '2026-03-26', 'start_time' => '13:00', 'end_time' => '15:30', 'room' => 'Phòng 302-A1', 'type' => 'Lý thuyết', 'instructor' => 'PGS.TS Trần Thị Hương', 'color_theme' => 'orange'],
-
-            // Thứ 7: Thị trường CK
+            // ── TS. Nguyễn Hoàng Anh (PTC, TTC) ──
             ['subject_id' => $subjectModels[18]->id, 'day_of_week' => 'Thứ 7', 'study_date' => '2026-03-28', 'start_time' => '07:00', 'end_time' => '09:30', 'room' => 'Phòng Lab A-402', 'type' => 'Lý thuyết', 'instructor' => 'TS. Nguyễn Hoàng Anh', 'color_theme' => 'cyan'],
         ];
 
         foreach ($scheduleData as $sd) {
             Schedule::create($sd);
+        }
+
+        // ══════════════════════════════════════════
+        // 10. ATTENDANCE (Điểm danh mẫu - 10 buổi gần nhất)
+        // ══════════════════════════════════════════
+        $allEnrollments = Enrollment::all();
+        $statuses = ['present', 'present', 'present', 'present', 'present', 'present', 'late', 'absent_excused', 'absent_unexcused', 'present'];
+        
+        // Tạo 10 buổi điểm danh cho mỗi enrollment (từ 10 ngày trước đến hôm qua)
+        for ($day = 10; $day >= 1; $day--) {
+            $date = now()->subDays($day)->format('Y-m-d');
+            
+            foreach ($allEnrollments as $enrollment) {
+                // Random trạng thái nhưng thiên về "present" (70%)
+                $rand = mt_rand(1, 100);
+                if ($rand <= 70) {
+                    $status = 'present';
+                } elseif ($rand <= 80) {
+                    $status = 'late';
+                } elseif ($rand <= 90) {
+                    $status = 'absent_excused';
+                } else {
+                    $status = 'absent_unexcused';
+                }
+
+                Attendance::create([
+                    'enrollment_id' => $enrollment->id,
+                    'date' => $date,
+                    'status' => $status,
+                    'note' => $status === 'absent_excused' ? 'Có đơn xin phép' : ($status === 'late' ? 'Đến muộn 10 phút' : null),
+                ]);
+            }
+        }
+
+        // ══════════════════════════════════════════
+        // 11. MATERIALS (Tài liệu mẫu)
+        // ══════════════════════════════════════════
+        $materialsData = [
+            ['subject_id' => $subjectModels[14]->id, 'teacher_id' => $teacherModels[0]->id, 'title' => 'Slide Chương 1 - Tổng quan NVNH', 'description' => 'Bài giảng PowerPoint chương 1: Tổng quan về nghiệp vụ ngân hàng thương mại', 'type' => 'slide'],
+            ['subject_id' => $subjectModels[14]->id, 'teacher_id' => $teacherModels[0]->id, 'title' => 'Giáo trình NVNH TM (PDF)', 'description' => 'Giáo trình chính thức môn Nghiệp vụ Ngân hàng Thương mại', 'type' => 'pdf'],
+            ['subject_id' => $subjectModels[15]->id, 'teacher_id' => $teacherModels[0]->id, 'title' => 'Tài liệu tham khảo - Tín dụng NH', 'description' => 'Bộ tài liệu tham khảo về nghiệp vụ tín dụng ngân hàng hiện đại', 'type' => 'document'],
+            ['subject_id' => $subjectModels[10]->id, 'teacher_id' => $teacherModels[0]->id, 'title' => 'Video bài giảng - Tài chính tiền tệ', 'description' => 'Video bài giảng trực tuyến chương 2: Hệ thống tiền tệ', 'type' => 'video'],
+        ];
+        foreach ($materialsData as $md) {
+            \App\Models\Material::create($md);
+        }
+
+        // ══════════════════════════════════════════
+        // 12. ASSIGNMENTS & SUBMISSIONS (Bài tập mẫu)
+        // ══════════════════════════════════════════
+        $assignment1 = \App\Models\Assignment::create([
+            'subject_id' => $subjectModels[14]->id,
+            'teacher_id' => $teacherModels[0]->id,
+            'title' => 'Bài tập Chương 1 - Phân tích NVNH',
+            'description' => 'Phân tích hoạt động huy động vốn của một NHTM cụ thể. Yêu cầu: Báo cáo 3-5 trang, trích dẫn số liệu năm gần nhất.',
+            'deadline' => now('Asia/Ho_Chi_Minh')->addDays(7),
+            'max_score' => 10,
+        ]);
+
+        $assignment2 = \App\Models\Assignment::create([
+            'subject_id' => $subjectModels[15]->id,
+            'teacher_id' => $teacherModels[0]->id,
+            'title' => 'Case Study - Tín dụng doanh nghiệp',
+            'description' => 'Nghiên cứu quy trình cho vay tín dụng đối với doanh nghiệp vừa và nhỏ. Nộp file Word hoặc PDF.',
+            'deadline' => now('Asia/Ho_Chi_Minh')->addDays(14),
+            'max_score' => 10,
+        ]);
+
+        // Tạo submissions mẫu (một số SV đã nộp)
+        $studentsInNVN = Enrollment::where('subject_id', $subjectModels[14]->id)
+            ->where('teacher_id', $teacherModels[0]->id)
+            ->pluck('student_id');
+
+        foreach ($studentsInNVN->take(3) as $idx => $studentId) {
+            \App\Models\Submission::create([
+                'assignment_id' => $assignment1->id,
+                'student_id' => $studentId,
+                'submitted_at' => now('Asia/Ho_Chi_Minh')->subDays(rand(1, 3)),
+                'file_name' => 'bai_tap_ch1_sv' . ($idx + 1) . '.docx',
+                'is_late' => $idx === 2, // SV thứ 3 nộp muộn
+                'score' => $idx === 0 ? 8.5 : null, // SV đầu tiên đã được chấm
+                'feedback' => $idx === 0 ? 'Bài viết tốt, phân tích số liệu chi tiết.' : null,
+            ]);
+        }
+
+        // ══════════════════════════════════════════
+        // 13. ANNOUNCEMENTS (Thông báo mẫu)
+        // ══════════════════════════════════════════
+        \App\Models\Announcement::create([
+            'teacher_id' => $teacherModels[0]->id,
+            'subject_id' => $subjectModels[14]->id,
+            'title' => 'Lịch thi giữa kỳ NVNH',
+            'content' => 'Kỳ thi giữa kỳ môn Nghiệp vụ Ngân hàng Thương mại sẽ diễn ra vào ngày 01/04/2026 tại Phòng 301-A1. Sinh viên mang theo thẻ SV và bút.',
+            'priority' => 'important',
+        ]);
+        \App\Models\Announcement::create([
+            'teacher_id' => $teacherModels[0]->id,
+            'subject_id' => null,
+            'title' => 'Hạn chót nộp điểm HK1',
+            'content' => 'Tất cả giảng viên vui lòng hoàn thành nhập điểm trước 15/04/2026. Điểm sẽ được khóa sau ngày này.',
+            'priority' => 'urgent',
+        ]);
+        \App\Models\Announcement::create([
+            'teacher_id' => $teacherModels[0]->id,
+            'subject_id' => $subjectModels[15]->id,
+            'title' => 'Tài liệu ôn tập Tín dụng NH',
+            'content' => 'Sinh viên có thể tải tài liệu ôn tập tại mục Học liệu. Nội dung ôn tập bao gồm Chương 1-4.',
+            'priority' => 'normal',
+        ]);
+
+        // ══════════════════════════════════════════
+        // 14. LEAVE REQUESTS (Đơn xin nghỉ mẫu)
+        // ══════════════════════════════════════════
+        $leaveStudents = Enrollment::where('teacher_id', $teacherModels[0]->id)
+            ->pluck('student_id')->unique()->values()->take(4);
+
+        if ($leaveStudents->count() >= 4) {
+            \App\Models\LeaveRequest::create([
+                'student_id' => $leaveStudents[0], 'subject_id' => $subjectModels[14]->id,
+                'teacher_id' => $teacherModels[0]->id, 'leave_date' => now('Asia/Ho_Chi_Minh')->addDays(2),
+                'reason' => 'Em bị ốm, có giấy khám bệnh. Xin phép nghỉ buổi học ngày mai.', 'status' => 'pending',
+            ]);
+            \App\Models\LeaveRequest::create([
+                'student_id' => $leaveStudents[1], 'subject_id' => $subjectModels[15]->id,
+                'teacher_id' => $teacherModels[0]->id, 'leave_date' => now('Asia/Ho_Chi_Minh')->addDays(3),
+                'reason' => 'Em có lịch thi chứng chỉ TOEIC vào sáng thứ Năm, xin phép vắng buổi học.', 'status' => 'pending',
+            ]);
+            \App\Models\LeaveRequest::create([
+                'student_id' => $leaveStudents[2], 'subject_id' => $subjectModels[14]->id,
+                'teacher_id' => $teacherModels[0]->id, 'leave_date' => now('Asia/Ho_Chi_Minh')->subDays(5),
+                'reason' => 'Em về quê có việc gia đình gấp, xin phép nghỉ 1 buổi.', 'status' => 'approved',
+                'teacher_note' => 'Đã duyệt, nhớ bổ sung bài.',
+            ]);
+            \App\Models\LeaveRequest::create([
+                'student_id' => $leaveStudents[3], 'subject_id' => $subjectModels[15]->id,
+                'teacher_id' => $teacherModels[0]->id, 'leave_date' => now('Asia/Ho_Chi_Minh')->subDays(3),
+                'reason' => 'Em muốn nghỉ để ôn thi môn khác.', 'status' => 'rejected',
+                'teacher_note' => 'Không hợp lệ, vui lòng đến lớp đầy đủ.',
+            ]);
         }
 
         // ══════════════════════════════════════════
