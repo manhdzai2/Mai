@@ -206,7 +206,7 @@ export default function Login({ status, canResetPassword }) {
             
             <div className="fixed bottom-6 w-full text-center z-10 pointer-events-none">
                 <p className="text-xs text-gray-400 dark:text-outline/70 font-medium">
-                    &copy; {new Date().getFullYear()} UniCore. Được thiết kế bản quyền giao diện "Institutional Muse".
+                    &copy; {new Date().getFullYear()} Đại Học Lumina. Hệ thống quản trị giáo dục thông minh.
                 </p>
             </div>
         </div>

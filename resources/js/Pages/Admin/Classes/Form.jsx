@@ -42,7 +42,7 @@ export default function Form({ mode, classData }) {
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100/80 dark:border-white/5 shadow-[0_2px_12px_rgb(0,0,0,0.03)] dark:shadow-none overflow-hidden transition-colors">
                 <form onSubmit={handleSubmit} className="divide-y divide-gray-100 dark:divide-gray-700/50">
-
+                    
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8">
                         <div className="md:col-span-1">
                             <h3 className="text-base font-bold text-gray-900 dark:text-white">Thông tin cơ sở</h3>
@@ -51,7 +51,7 @@ export default function Form({ mode, classData }) {
                             </p>
                         </div>
                         <div className="md:col-span-2 space-y-6">
-
+                            
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                     Mã Lớp (Class Code) <span className="text-rose-500">*</span>
@@ -60,10 +60,11 @@ export default function Form({ mode, classData }) {
                                     type="text"
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
-                                    className={`w-full md:max-w-md px-4 py-2.5 rounded-lg border text-sm font-mono shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${errors.name
-                                            ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500'
-                                            : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
-                                        }`}
+                                    className={`w-full md:max-w-md px-4 py-2.5 rounded-lg border text-sm font-mono shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                        errors.name 
+                                        ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
+                                        : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
                                     placeholder="Ví dụ: K62-CNTT-01"
                                 />
                                 {errors.name && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.name}</p>}
@@ -77,10 +78,11 @@ export default function Form({ mode, classData }) {
                                     rows="4"
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}
-                                    className={`w-full px-4 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${errors.description
-                                            ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500'
-                                            : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
-                                        }`}
+                                    className={`w-full px-4 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                        errors.description 
+                                        ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
+                                        : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
                                     placeholder="Ví dụ: Lớp chất lượng cao định hướng kỹ sư Điện toán đám mây..."
                                 />
                                 {errors.description && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.description}</p>}

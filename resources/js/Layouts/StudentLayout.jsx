@@ -41,7 +41,7 @@ export default function StudentLayout({ children }) {
                         <span className="material-symbols-outlined text-white text-lg">school</span>
                     </div>
                     <div>
-                        <span className="text-base font-extrabold text-white tracking-tight font-headline block leading-tight">Cổng Sinh Viên</span>
+                        <span className="text-base font-extrabold text-white tracking-tight font-headline block leading-tight">Đại Học Lumina</span>
                         <span className="text-[10px] text-slate-500 tracking-wider uppercase">Học tập & phát triển</span>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ export default function StudentLayout({ children }) {
                     <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-1 rounded-lg text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800">
                         <span className="material-symbols-outlined">menu</span>
                     </button>
-                    <span className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400 font-headline">Cổng Sinh Viên</span>
+                    <span className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400 font-headline">Đại Học Lumina</span>
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0) || 'S'}</div>
                 </header>
 

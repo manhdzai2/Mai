@@ -43,11 +43,11 @@ export default function Index({ classrooms, filters }) {
             <motion.div variants={itemVariants} className="bg-surface-container-lowest p-2 rounded-2xl shadow-sm border border-outline-variant/5 flex flex-col lg:flex-row gap-2">
                 <div className="flex-1 relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                    <input
-                        type="text"
+                    <input 
+                        type="text" 
                         defaultValue={filters?.search || ''}
                         onChange={(e) => searchRef(e.target.value)}
-                        placeholder="Tìm kiếm theo mã cấp lớp hoặc phòng học..."
+                        placeholder="Tìm kiếm theo mã cấp lớp hoặc phòng học..." 
                         className="w-full bg-transparent border-none py-3 pl-12 pr-4 text-sm focus:ring-0 outline-none placeholder:text-on-surface-variant/50 text-on-surface font-medium"
                     />
                 </div>
@@ -60,7 +60,7 @@ export default function Index({ classrooms, filters }) {
                         return (
                             <motion.div variants={itemVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }} key={item.id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/5 hover:border-[#848BFF]/50 transition-colors group cursor-pointer relative overflow-hidden flex flex-col h-full">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#848BFF]/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-
+                                
                                 <div className="flex justify-between items-start mb-4 relative z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-xl bg-[#848BFF]/10 text-[#848BFF] font-bold flex items-center justify-center shadow-sm border border-[#848BFF]/20">
@@ -121,7 +121,7 @@ function Pagination({ links }) {
             <div className="inline-flex bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/5 p-1">
                 {links.map((link, index) => {
                     const label = link.label.replace('&laquo;', '').replace('&raquo;', '').trim() || (link.label.includes('laquo') ? 'Trước' : 'Sau');
-
+                    
                     if (!link.url) {
                         return (
                             <span key={index} className="px-4 py-2 text-sm font-bold text-on-surface-variant/50 cursor-not-allowed">
@@ -129,15 +129,16 @@ function Pagination({ links }) {
                             </span>
                         );
                     }
-
+                    
                     return (
                         <Link
                             key={index}
                             href={link.url}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${link.active
-                                    ? 'bg-[#848BFF] text-white'
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+                                link.active 
+                                    ? 'bg-[#848BFF] text-white' 
                                     : 'text-on-surface hover:bg-surface-container'
-                                }`}
+                            }`}
                         >
                             {label}
                         </Link>

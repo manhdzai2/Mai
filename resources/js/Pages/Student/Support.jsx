@@ -38,7 +38,7 @@ export default function Support({ studentInfo }) {
             },
             {
                 keywords: ['học phí', 'đóng tiền', 'tiền học'],
-                response: "Học phí học kỳ này phải được hoàn thành trước ngày 30/11. Bạn có thể thanh toán trực tiếp tại Phòng Tài vụ hoặc chuyển khoản qua cổng Lumina Pay. Nếu gặp khó khăn, bạn có thể làm đơn xin gia hạn học phí nhé."
+                response: "Học phí học kỳ này phải được hoàn thành trước ngày 30/11. Bạn có thể thanh toán trực tiếp tại Phòng Tài vụ hoặc chuyển khoản qua hệ thống Thanh toán Đại Học Lumina. Nếu gặp khó khăn, bạn có thể làm đơn xin gia hạn học phí nhé."
             },
             {
                 keywords: ['lịch thi', 'khi nào thi', 'ngày thi'],
@@ -70,7 +70,7 @@ export default function Support({ studentInfo }) {
             },
             {
                 keywords: ['mật khẩu', 'quên pass', 'tài khoản', 'đăng nhập'],
-                response: "Nếu bạn quên mật khẩu đăng nhập Lumina Học Vụ, hãy dùng nút 'Quên mật khẩu' trên màn hình Login để nhận mã qua Email. Nếu tài khoản bị khóa, vui lòng mang thẻ sinh viên xuống phòng IT hỗ trợ (404-C)."
+                response: "Nếu bạn quên mật khẩu đăng nhập Cổng Học Vụ Đại Học Lumina, hãy dùng nút 'Quên mật khẩu' trên màn hình Login để nhận mã qua Email. Nếu tài khoản bị khóa, vui lòng mang thẻ sinh viên xuống phòng IT hỗ trợ (404-C)."
             },
             {
                 keywords: ['giờ học', 'thời gian', 'ca học'],

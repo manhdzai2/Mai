@@ -1,4 +1,3 @@
-
 import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -53,7 +52,7 @@ export default function Form({ teacher }) {
                 <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-gradient-to-br from-blue-400 to-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
 
                 <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8 relative z-10">
-
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         {/* Cột 1: Thông tin tài khoản */}
                         <div className="space-y-6">
@@ -63,7 +62,7 @@ export default function Form({ teacher }) {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-800">Thông tin Tài khoản</h3>
                             </div>
-
+                            
                             <div className="space-y-5">
                                 <div className="group">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5 transition-colors group-focus-within:text-indigo-600">Họ và Tên <span className="text-rose-500">*</span></label>
@@ -113,7 +112,7 @@ export default function Form({ teacher }) {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-800">Liên hệ & Định danh</h3>
                             </div>
-
+                            
                             <div className="space-y-5">
                                 <div className="group">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5 transition-colors group-focus-within:text-purple-600">Số điện thoại</label>
@@ -126,7 +125,7 @@ export default function Form({ teacher }) {
                                     />
                                     {errors.phone && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.phone}</p>}
                                 </div>
-
+                                
                                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-[1.5rem] p-6 mt-6 border border-white shadow-inner">
                                     <div className="flex gap-4">
                                         <div className="bg-white p-2.5 rounded-xl shadow-sm h-11 w-11 flex items-center justify-center shrink-0 text-indigo-500">

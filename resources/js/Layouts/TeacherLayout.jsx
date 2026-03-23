@@ -46,8 +46,8 @@ export default function TeacherLayout({ children }) {
                 {/* Sidebar */}
                 <aside className="h-screen flex-shrink-0 w-64 bg-slate-50 dark:bg-slate-900 flex flex-col py-6 px-4 font-headline antialiased sticky top-0 hidden md:flex">
                     <div className="mb-10 px-4">
-                        <h1 className="text-2xl font-bold text-indigo-700 dark:text-indigo-300 tracking-tight">Cổng Giảng Viên</h1>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-body">Quản lý lớp học & đánh giá</p>
+                        <h1 className="text-2xl font-bold text-indigo-700 dark:text-indigo-300 tracking-tight">Đại Học Lumina</h1>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-body">Cổng Giảng Viên & Quản lý</p>
                     </div>
 
                     <nav className="flex-1 space-y-1.5">

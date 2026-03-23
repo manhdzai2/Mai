@@ -27,9 +27,6 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
@@ -39,7 +36,9 @@ class AuthenticatedSessionController extends Controller
         // --- LẤY THÔNG TIN ROLE ĐỂ CHUYỂN HƯỚNG ---
         $user = $request->user();
 
-        if ($user->role_id == 2) {
+        if ($user->role_id == 1) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->role_id == 2) {
             return redirect()->route('teacher.dashboard');
         } elseif ($user->role_id == 3) {
             return redirect()->route('student.dashboard');

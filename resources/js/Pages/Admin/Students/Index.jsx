@@ -143,47 +143,9 @@ export default function Index({ students, filters }) {
                 )}
             </motion.div>
 
-            {/* Pagination Component */}
-            <Pagination links={students.links} />
-
+            {/* Thẻ đóng div chính */}
         </motion.div>
     );
 }
 
 Index.layout = page => <AdminLayout>{page}</AdminLayout>;
-
-function Pagination({ links }) {
-    if (!links || links.length <= 3) return null;
-
-    return (
-        <div className="flex justify-center mt-8">
-            <div className="inline-flex bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/5 p-1">
-                {links.map((link, index) => {
-                    const label = link.label.replace('&laquo;', '').replace('&raquo;', '').trim() || (link.label.includes('laquo') ? 'Trước' : 'Sau');
-                    
-                    if (!link.url) {
-                        return (
-                            <span key={index} className="px-4 py-2 text-sm font-bold text-on-surface-variant/50 cursor-not-allowed">
-                                {label}
-                            </span>
-                        );
-                    }
-                    
-                    return (
-                        <Link
-                            key={index}
-                            href={link.url}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                                link.active 
-                                    ? 'bg-primary text-on-primary' 
-                                    : 'text-on-surface hover:bg-surface-container'
-                            }`}
-                        >
-                            {label}
-                        </Link>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}

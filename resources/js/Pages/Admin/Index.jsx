@@ -26,7 +26,7 @@ export default function Index({ subjects, filters }) {
                     <h1 className="text-2xl font-bold text-gray-900">Quản lý Môn học</h1>
                     <p className="text-sm text-gray-500 mt-1">Quản lý danh mục các môn học và số tín chỉ</p>
                 </div>
-
+                
                 <div className="flex w-full md:w-auto items-center gap-3">
                     <form onSubmit={handleSearch} className="relative w-full md:w-72">
                         <input
@@ -38,7 +38,7 @@ export default function Index({ subjects, filters }) {
                         />
                         <svg className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </form>
-
+                    
                     <Link
                         href={route('admin.subjects.create')}
                         className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl shadow-sm font-medium transition-colors flex items-center gap-2"
@@ -100,7 +100,7 @@ export default function Index({ subjects, filters }) {
                         </tbody>
                     </table>
                 </div>
-
+                
                 {/* PHÂN TRANG */}
                 {/* Bạn có thể dùng chung component Pagination ở đây nếu có */}
             </div>
