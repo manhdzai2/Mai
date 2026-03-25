@@ -207,12 +207,6 @@ class DatabaseSeeder extends Seeder
         // ══════════════════════════════════════════
 
         // Mapping giảng viên -> môn chính
-        // teacherModels[0] = Trần Thị Hương -> TC, NVN, TDN
-        // teacherModels[1] = Lê Quang Minh -> Toán, XST, KTL
-        // teacherModels[2] = Phạm Thanh Tùng -> KTV, KVM, NLK
-        // teacherModels[3] = Nguyễn Hoàng Anh -> PTC, QTR, TTC
-        // teacherModels[4] = Vũ Thị Lan -> MKT, QTH, THC
-
         $teacherSubjectMap = [
             // subjectIndex => teacherIndex
             0 => 1, 1 => 2, 2 => 2, 3 => 1, 4 => 1, 5 => 4, 6 => 4,
@@ -224,7 +218,7 @@ class DatabaseSeeder extends Seeder
         // Mỗi sinh viên đăng ký 4-6 môn
         $enrollmentSets = [
             // student index => [subject indices]
-            0  => [3, 4, 7, 8, 14, 15],   // An (TC-NH) - Toán, XST, KTV, KVM, NVN, TDN
+            0  => [3, 4, 7, 8, 14, 15],   // An (TC-NH)
             1  => [3, 4, 7, 8, 9, 10],    // Ngọc
             2  => [0, 3, 6, 7, 11, 12],   // Huy
             3  => [3, 4, 9, 10, 11, 12],  // Mai (Kế toán)
@@ -251,8 +245,12 @@ class DatabaseSeeder extends Seeder
                     'teacher_id' => $teacherModels[$teacherIdx]->id,
                 ]);
 
+                // Đã fix: Thêm khai báo random cho tất cả các điểm
+                $attendance = round(mt_rand(60, 100) / 10, 1);
                 $regular = round(mt_rand(50, 95) / 10, 1);
                 $test = round(mt_rand(40, 95) / 10, 1);
+                $midterm = round(mt_rand(40, 95) / 10, 1);
+                $final = round(mt_rand(40, 95) / 10, 1);
 
                 Score::create([
                     'enrollment_id' => $enrollment->id,
