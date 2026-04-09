@@ -2,12 +2,13 @@ import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Form({ classroom, subjects }) {
+export default function Form({ classroom, subjects, teachers }) {
     const isEditing = !!classroom;
 
     const { data, setData, post, put, processing, errors } = useForm({
         name: classroom?.name || '',
         subject_id: classroom?.subject_id || '',
+        teacher_id: classroom?.teacher_id || '',
         room: classroom?.room || '',
     });
 
@@ -97,6 +98,34 @@ export default function Form({ classroom, subjects }) {
                                     </div>
                                 </div>
                                 {errors.subject_id && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.subject_id}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Giảng viên phụ trách <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={data.teacher_id}
+                                        onChange={e => setData('teacher_id', e.target.value)}
+                                        className={`appearance-none block w-full pl-4 pr-10 py-2.5 rounded-lg border text-sm shadow-sm bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 outline-none transition-all duration-200 ${
+                                            errors.teacher_id 
+                                            ? 'border-rose-300 dark:border-rose-500/50 focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500' 
+                                            : 'border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                        }`}
+                                    >
+                                        <option value="">-- Chọn Giảng viên --</option>
+                                        {teachers.map(teacher => (
+                                            <option key={teacher.id} value={teacher.id}>
+                                                {teacher.user?.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </div>
+                                </div>
+                                {errors.teacher_id && <p className="mt-2 text-sm text-rose-500 font-medium">{errors.teacher_id}</p>}
                             </div>
 
                             <div className="max-w-md">

@@ -13,6 +13,7 @@ class Classroom extends Model
     protected $fillable = [
         'name',
         'subject_id',
+        'teacher_id',
         'room',
     ];
 
@@ -20,5 +21,10 @@ class Classroom extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
     }
 }

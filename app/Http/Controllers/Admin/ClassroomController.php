@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\Subject;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,8 +13,8 @@ class ClassroomController extends Controller
 {
     public function index(Request $request)
     {
-        // Lấy danh sách lớp kèm theo thông tin môn học (relationship 'subject')
-        $classrooms = Classroom::with('subject')
+        // Lấy danh sách lớp kèm theo thông tin môn học và giảng viên
+        $classrooms = Classroom::with(['subject', 'teacher.user'])
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('room', 'like', "%{$search}%");
@@ -32,9 +33,11 @@ class ClassroomController extends Controller
     {
         // Truyền danh sách môn học sang để làm thẻ <select>
         $subjects = Subject::orderBy('name')->get(['id', 'name', 'code']);
+        $teachers = Teacher::with('user')->get();
         
         return Inertia::render('Admin/Classrooms/Form', [
-            'subjects' => $subjects
+            'subjects' => $subjects,
+            'teachers' => $teachers
         ]);
     }
 
@@ -43,6 +46,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:classrooms',
             'subject_id' => 'required|exists:subjects,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'room' => 'nullable|string|max:50',
         ]);
 
@@ -54,10 +58,12 @@ class ClassroomController extends Controller
     public function edit(Classroom $classroom)
     {
         $subjects = Subject::orderBy('name')->get(['id', 'name', 'code']);
+        $teachers = Teacher::with('user')->get();
 
         return Inertia::render('Admin/Classrooms/Form', [
             'classroom' => $classroom,
-            'subjects' => $subjects
+            'subjects' => $subjects,
+            'teachers' => $teachers
         ]);
     }
 
@@ -66,6 +72,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:classrooms,name,' . $classroom->id,
             'subject_id' => 'required|exists:subjects,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'room' => 'nullable|string|max:50',
         ]);
 

@@ -79,6 +79,10 @@ export default function Index({ classrooms, filters }) {
                                         <span className="truncate flex-1 font-bold text-on-surface">{item.subject?.name || 'Chưa định danh môn học'}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                                        <span className="material-symbols-outlined text-[16px]">person</span>
+                                        <span className="truncate flex-1 font-bold text-on-surface">{item.teacher?.user?.name || 'Chưa phân công giảng viên'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
                                         <span className="material-symbols-outlined text-[16px]">location_on</span>
                                         <span className="truncate">Vị trí: {item.room}</span>
                                     </div>
