@@ -2,8 +2,9 @@ import React from 'react';
 import TeacherLayout from '@/Layouts/TeacherLayout';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, LabelList } from 'recharts';
 
-export default function Dashboard({ todaySchedules, stats, todoItems, announcements }) {
+export default function Dashboard({ todaySchedules, stats, todoItems, announcements, gradeDistribution }) {
     const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
     const itemVariants = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
@@ -20,11 +21,17 @@ export default function Dashboard({ todaySchedules, stats, todoItems, announceme
             <Head title="Dashboard Giảng Viên" />
 
             {/* Page Header */}
-            <motion.div variants={itemVariants}>
-                <h2 className="text-3xl font-extrabold font-headline tracking-tight text-gray-900 dark:text-white">
-                    Xin chào, <span className="text-indigo-600 dark:text-indigo-400">Giảng viên</span> 👋
-                </h2>
-                <p className="text-gray-500 dark:text-slate-400 mt-1">Tổng quan lớp học và công việc hôm nay.</p>
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-extrabold font-headline tracking-tight text-gray-900 dark:text-white">
+                        Xin chào, <span className="text-indigo-600 dark:text-indigo-400">Giảng viên</span> 👋
+                    </h2>
+                    <p className="text-gray-500 dark:text-slate-400 mt-1">Tổng quan lớp học và công việc hôm nay.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Hệ thống trực tuyến</span>
+                </div>
             </motion.div>
 
             {/* Stats Cards */}
@@ -47,9 +54,57 @@ export default function Dashboard({ todaySchedules, stats, todoItems, announceme
                 ))}
             </motion.div>
 
+            {/* Analytics Section - New Visual Win */}
+            <motion.div variants={itemVariants} className="bg-white dark:bg-slate-800/60 rounded-2xl p-6 border border-gray-100 dark:border-slate-700/50 shadow-sm">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-lg">bar_chart</span>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Phổ Điểm Sinh Viên</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Thống kê xếp loại dựa trên tổng điểm các lớp đang phụ trách.</p>
+                    </div>
+                </div>
+
+                <div className="h-[250px] w-full mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={gradeDistribution} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
+                            <XAxis 
+                                dataKey="name" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                dy={10}
+                            />
+                            <YAxis hide />
+                            <Tooltip 
+                                cursor={{ fill: 'transparent' }}
+                                contentStyle={{ 
+                                    borderRadius: '12px', 
+                                    border: 'none', 
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                    backgroundColor: '#1e293b',
+                                    color: '#fff'
+                                }}
+                                itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                                labelStyle={{ display: 'none' }}
+                            />
+                            <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={50}>
+                                {gradeDistribution.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                                <LabelList dataKey="value" position="top" style={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} />
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </motion.div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Today's Schedule Timeline */}
                 <motion.div variants={itemVariants} className="lg:col-span-2 bg-white dark:bg-slate-800/60 rounded-2xl p-6 border border-gray-100 dark:border-slate-700/50 shadow-sm">
+
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">

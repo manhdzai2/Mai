@@ -106,7 +106,26 @@ class TeacherDashboardController extends Controller
             ];
         }
 
-        // 4. Thông báo hệ thống (hardcoded mẫu)
+        // 4. Phổ điểm (Grade Distribution) - Thêm để làm Dashboard chuyên nghiệp hơn
+        $gradeDistribution = [
+            ['name' => 'Loại A (8.5-10)', 'value' => 0, 'color' => '#10b981'],
+            ['name' => 'Loại B (7.0-8.4)', 'value' => 0, 'color' => '#3b82f6'],
+            ['name' => 'Loại C (5.5-6.9)', 'value' => 0, 'color' => '#f59e0b'],
+            ['name' => 'Loại D (4.0-5.4)', 'value' => 0, 'color' => '#6366f1'],
+            ['name' => 'Loại F (< 4.0)', 'value' => 0, 'color' => '#ef4444'],
+        ];
+
+        foreach ($enrollments as $enr) {
+            if (!$enr->score || $enr->score->total_score === null) continue;
+            $score = $enr->score->total_score;
+            if ($score >= 8.5) { $gradeDistribution[0]['value']++; }
+            elseif ($score >= 7.0) { $gradeDistribution[1]['value']++; }
+            elseif ($score >= 5.5) { $gradeDistribution[2]['value']++; }
+            elseif ($score >= 4.0) { $gradeDistribution[3]['value']++; }
+            else { $gradeDistribution[4]['value']++; }
+        }
+
+        // 5. Thông báo hệ thống (hardcoded mẫu)
         $announcements = [
             ['title' => 'Kỳ thi giữa kỳ bắt đầu từ 01/04/2026', 'date' => '20/03/2026', 'type' => 'info'],
             ['title' => 'Hạn chót nộp bảng điểm cuối kỳ: 15/04/2026', 'date' => '18/03/2026', 'type' => 'warning'],
@@ -118,6 +137,8 @@ class TeacherDashboardController extends Controller
             'stats' => $stats,
             'todoItems' => $todoItems,
             'announcements' => $announcements,
+            'gradeDistribution' => $gradeDistribution,
         ]);
+
     }
 }

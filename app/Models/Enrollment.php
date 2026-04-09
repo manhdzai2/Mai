@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Enrollment extends Model
 {
-    protected $fillable = ['student_id', 'subject_id', 'teacher_id', 'term'];
+    protected $fillable = ['student_id', 'subject_id', 'teacher_id', 'semester', 'academic_year'];
 
     protected $with = ['student.user', 'subject', 'teacher.user']; // tránh N+1 cho các view chung
 

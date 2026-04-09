@@ -24,6 +24,14 @@ class DashboardController extends Controller
         $totalSubjects = Subject::count();
         $totalClasses  = SchoolClass::count();
 
+        // 1.1 Tính số lượng Lớp học phần (Dựa trên nhóm Enrollment)
+        $totalCourseUnits = \App\Models\Enrollment::join('students', 'enrollments.student_id', '=', 'students.id')
+            ->select('enrollments.subject_id', 'enrollments.teacher_id', 'students.class_id')
+            ->groupBy('enrollments.subject_id', 'enrollments.teacher_id', 'students.class_id')
+            ->get()
+            ->count();
+
+
         // 2. Phổ điểm theo grade
         $gradeStats = Score::select('grade', DB::raw('COUNT(*) as count'))
             ->groupBy('grade')
@@ -51,24 +59,32 @@ class DashboardController extends Controller
             'total_paid'    => \App\Models\TuitionFee::sum('paid_amount'),
         ];
 
-        // 6. Hoạt động gần đây (Mockup nếu ActivityLog trống, hoặc lấy từ DB)
-        $recentActivities = \Spatie\Activitylog\Models\Activity::latest()->limit(6)->get()->map(function($act) {
-            return [
-                'id' => $act->id,
-                'description' => $act->description,
-                'causer' => $act->causer->name ?? 'Hệ thống',
-                'time' => $act->created_at->diffForHumans(),
-            ];
-        });
+        // 6. Hoạt động gần đây (Lấy dữ liệu thực tế từ Enrollments mới nhất)
+        $recentActivities = \App\Models\Enrollment::with(['subject', 'teacher.user', 'student.class'])
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->unique(function ($item) {
+                return $item->subject_id . '-' . $item->teacher_id . '-' . ($item->student->class_id ?? '0');
+            })
+            ->take(6)
+            ->map(function ($act) {
+                $className = $act->student->class->name ?? 'N/A';
+                return [
+                    'id' => $act->id,
+                    'description' => "Phân công dạy môn {$act->subject->name} cho lớp {$className}",
+                    'causer' => $act->teacher->user->name ?? 'Hệ thống',
+                    'time' => $act->created_at->diffForHumans(),
+                ];
+            });
 
-        // Nếu trống thì tạo mockup cho đẹp giao diện
+        // Nếu vẫn trống hoàn toàn (dự án mới), mới hiện thông báo trống thay vì mockup
         if ($recentActivities->isEmpty()) {
             $recentActivities = collect([
-                ['id' => 1, 'description' => 'Đã cập nhật điểm cho lớp K62-TCNH', 'causer' => 'Lê Quang Minh', 'time' => '10 phút trước'],
-                ['id' => 2, 'description' => 'Mở đăng ký môn học học kỳ mới', 'causer' => 'Admin', 'time' => '1 giờ trước'],
-                ['id' => 3, 'description' => 'Thêm tài liệu: Giáo trình vĩ mô', 'causer' => 'Trần Thị Hương', 'time' => '3 giờ trước'],
+                ['id' => 0, 'description' => 'Chưa có hoạt động phân công nào gần đây.', 'causer' => 'Hệ thống', 'time' => 'Nội bộ'],
             ]);
         }
+
 
         return Inertia::render('Admin/Dashboard', [
             'cards' => [
@@ -76,7 +92,9 @@ class DashboardController extends Controller
                 'teachers' => $totalTeachers,
                 'subjects' => $totalSubjects,
                 'classes'  => $totalClasses,
+                'courseUnits' => $totalCourseUnits,
             ],
+
             'financial' => $financial,
             'gradeStats' => [
                 'Gioi' => (int) ($gradeStats['Giỏi'] ?? 0),

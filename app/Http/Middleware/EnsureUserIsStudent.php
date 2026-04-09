@@ -6,11 +6,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Enums\RoleEnum;
+
 class EnsureUserIsStudent
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check() || strtolower(Auth::user()->role->name ?? '') !== 'student') {
+        if (!Auth::check() || Auth::user()->role_id !== RoleEnum::STUDENT) {
             abort(403, 'Unauthorized');
         }
         return $next($request);

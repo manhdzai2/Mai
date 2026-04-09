@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\RoleEnum;
+
 
 class StudentController extends Controller
 {
@@ -55,13 +57,16 @@ class StudentController extends Controller
 
         // Dùng Transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::transaction(function () use ($validated) {
+
             // 1. Tạo User trước
+
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role_id' => 3, 
+                'role_id' => RoleEnum::STUDENT, 
             ]);
+
 
             // 2. Tạo Student liên kết với User vừa tạo
             Student::create([

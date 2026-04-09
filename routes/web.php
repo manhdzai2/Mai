@@ -13,8 +13,9 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ScoreController;
+use App\Http\Controllers\Admin\CourseAssignmentController;
 
-// Khai báo Controller của Teacher
+
 use App\Http\Controllers\Teacher\EnrollmentController;
 
 // Khai báo Controller của Student
@@ -31,25 +32,21 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+use App\Enums\RoleEnum;
+
 // 2. DASHBOARD CHUNG (Người điều phối giao thông)
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    // Ép kiểu role_id về số nguyên để tránh lỗi so sánh sai kiểu dữ liệu
-    $roleId = (int) $user->role_id;
-
-    // Phân luồng dựa theo role_id (1: Admin, 2: Teacher, 3: Student)
-    if ($roleId === 1) {
-        return redirect()->route('admin.dashboard');
-    } elseif ($roleId === 2) {
-        return redirect()->route('teacher.dashboard');
-    } elseif ($roleId === 3) {
-        return redirect()->route('student.dashboard');
-    }
-
-    // Nếu không thuộc role nào ở trên thì cho vào trang mặc định
-    return Inertia::render('Dashboard');
+    // Phân luồng dựa theo role (Dùng Enum để code sạch và chuyên nghiệp)
+    return match($user->role_id) {
+        RoleEnum::ADMIN => redirect()->route('admin.dashboard'),
+        RoleEnum::TEACHER => redirect()->route('teacher.dashboard'),
+        RoleEnum::STUDENT => redirect()->route('student.dashboard'),
+        default => Inertia::render('Dashboard'),
+    };
 })->middleware(['auth', 'verified'])->name('dashboard');
+
 
 // 3. NHÓM ROUTE YÊU CẦU ĐĂNG NHẬP (Cài đặt tài khoản chung)
 Route::middleware('auth')->group(function () {
@@ -75,7 +72,10 @@ Route::middleware(['auth', 'ensure.admin'])
         Route::resource('scores', ScoreController::class)->only(['index']);
         Route::resource('materials', \App\Http\Controllers\Admin\MaterialController::class)->only(['index', 'destroy']);
         Route::resource('assignments', \App\Http\Controllers\Admin\AssignmentController::class)->only(['index', 'destroy']);
+        Route::resource('course-assignments', CourseAssignmentController::class)->only(['index', 'create', 'store']);
+        Route::delete('course-assignments/bulk-delete', [CourseAssignmentController::class, 'destroy'])->name('course-assignments.destroy');
     });
+
 
 // 5. NHÓM ROUTE DÀNH CHO TEACHER
 Route::middleware(['auth'])->prefix('teacher')->name('teacher.')->group(function () {

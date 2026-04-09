@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\RoleEnum;
+
 
 class TeacherController extends Controller
 {
@@ -48,12 +50,15 @@ class TeacherController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
+
             $user = User::create([
+
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role_id' => 2, // Giáo viên
+                'role_id' => RoleEnum::TEACHER, // Giáo viên
             ]);
+
 
             Teacher::create([
                 'user_id' => $user->id,

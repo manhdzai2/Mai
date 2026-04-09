@@ -10,34 +10,38 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
+use App\Enums\RoleEnum;
+
 class EnrollmentController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
 
-        if (!$user || $user->role_id !== 2 || !$user->teacher) {
+        if (!$user || $user->role_id !== RoleEnum::TEACHER || !$user->teacher) {
             abort(403, 'Truy cập bị từ chối. Không tìm thấy hồ sơ giảng viên.');
         }
+
 
         $teacherId = $user->teacher->id;
 
         // CHỈ gom nhóm theo subject_id, KHÔNG dính dáng đến semester nữa
         $courses = Enrollment::with('subject')
             ->where('teacher_id', $teacherId)
-            ->selectRaw('subject_id, COUNT(student_id) as total_students')
-            ->groupBy('subject_id')
+            ->selectRaw('subject_id, semester, academic_year, COUNT(student_id) as total_students')
+            ->groupBy('subject_id', 'semester', 'academic_year')
             ->get()
             ->map(function ($enrollment) {
                 return [
                     'subject_id'     => $enrollment->subject_id,
                     'subject_name'   => $enrollment->subject ? $enrollment->subject->name : 'Môn học không xác định',
                     'credit'         => $enrollment->subject ? $enrollment->subject->credit : 0,
-                    // Giả lập kỳ 1 để Front-end React không bị lỗi hiển thị
-                    'semester'       => 1, 
+                    'semester'       => $enrollment->semester, 
+                    'academic_year' => $enrollment->academic_year,
                     'total_students' => $enrollment->total_students,
                 ];
             });
+
 
         return Inertia::render('Teacher/Enrollments/Index', [
             'courses' => $courses

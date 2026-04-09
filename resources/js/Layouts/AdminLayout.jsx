@@ -25,7 +25,9 @@ export default function AdminLayout({ children }) {
         { title: 'Môn học', href: '/admin/subjects', icon: 'book' },
         { title: 'Học liệu', href: '/admin/materials', icon: 'folder_open' },
         { title: 'Bài tập', href: '/admin/assignments', icon: 'assignment' },
+        { title: 'Phân công dạy', href: '/admin/course-assignments', icon: 'add_task' },
         { title: 'Điểm số', href: '/admin/scores', icon: 'analytics' },
+
     ];
 
     const handleGlobalSearch = (e) => {

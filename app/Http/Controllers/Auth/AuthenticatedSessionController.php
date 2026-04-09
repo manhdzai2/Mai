@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Enums\RoleEnum;
+
 
 class AuthenticatedSessionController extends Controller
 {
@@ -31,18 +33,21 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+
         $request->session()->regenerate();
 
         // --- LẤY THÔNG TIN ROLE ĐỂ CHUYỂN HƯỚNG ---
+
         $user = $request->user();
 
-        if ($user->role_id == 1) {
+        if ($user->role_id === RoleEnum::ADMIN) {
             return redirect()->route('admin.dashboard');
-        } elseif ($user->role_id == 2) {
+        } elseif ($user->role_id === RoleEnum::TEACHER) {
             return redirect()->route('teacher.dashboard');
-        } elseif ($user->role_id == 3) {
+        } elseif ($user->role_id === RoleEnum::STUDENT) {
             return redirect()->route('student.dashboard');
         }
+
 
         // Mặc định nếu không thuộc role nào
         return redirect()->intended(route('dashboard', absolute: false));

@@ -8,6 +8,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Enums\RoleEnum;
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -20,6 +22,10 @@ class User extends Authenticatable
     ];
 
     protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'role_id' => RoleEnum::class,
+    ];
 
     public function role(): BelongsTo
     {
@@ -36,8 +42,8 @@ class User extends Authenticatable
         return $this->hasOne(Student::class);
     }
 
-    // Helpers (Sử dụng role_id: 1: Admin, 2: Teacher, 3: Student)
-    public function isAdmin(): bool   { return $this->role_id == 1; }
-    public function isTeacher(): bool { return $this->role_id == 2; }
-    public function isStudent(): bool { return $this->role_id == 3; }
+    // Helpers
+    public function isAdmin(): bool   { return $this->role_id === RoleEnum::ADMIN; }
+    public function isTeacher(): bool { return $this->role_id === RoleEnum::TEACHER; }
+    public function isStudent(): bool { return $this->role_id === RoleEnum::STUDENT; }
 }

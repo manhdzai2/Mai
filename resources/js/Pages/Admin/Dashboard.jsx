@@ -77,8 +77,10 @@ export default function Dashboard({
                     { label: 'Sinh Viên', value: cards.students, icon: 'groups', color: 'indigo', link: 'admin.students.index' },
                     { label: 'Giảng Viên', value: cards.teachers, icon: 'school', color: 'purple', link: 'admin.teachers.index' },
                     { label: 'Khối Lớp', value: cards.classes, icon: 'door_open', color: 'amber', link: 'admin.classes.index' },
-                    { label: 'Học Phần', value: cards.subjects, icon: 'book', color: 'rose', link: 'admin.subjects.index' },
+                    { label: 'Môn học', value: cards.subjects, icon: 'book', color: 'rose', link: 'admin.subjects.index' },
+                    { label: 'Lớp HP', value: cards.courseUnits, icon: 'add_task', color: 'emerald', link: 'admin.course-assignments.index' },
                 ].map((card, idx) => (
+
                     <motion.div key={idx} variants={itemVariants}>
                         <Link
                             href={route(card.link)}
